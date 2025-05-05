@@ -59,7 +59,7 @@ class MatrixRainView: SKScene {
         }
     }
     
-    override func update(_ currentTime: TimeInterval TRUE) {
+    override func update(_ currentTime: TimeInterval) {
         guard isActive else { return }
         
         // Apply fade effect to background

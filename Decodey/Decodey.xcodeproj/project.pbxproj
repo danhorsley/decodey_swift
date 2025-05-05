@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		280A4D112DC90BF7003DAD3B /* SpriteKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 280A4D102DC90BF7003DAD3B /* SpriteKit.framework */; };
 		280A4D162DC90D14003DAD3B /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 280A4D152DC90D14003DAD3B /* SwiftUI.framework */; };
+		280A4D1B2DC91261003DAD3B /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 280A4D1A2DC91261003DAD3B /* UIKit.framework */; platformFilters = (ios, xros, ); };
 		2883E3252DC8E2460061EAB2 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 2883E3242DC8E23A0061EAB2 /* README.md */; };
 		2885FE0D2DC8E97600A9F89D /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 2885FE0C2DC8E97600A9F89D /* GRDB */; };
 /* End PBXBuildFile section */
@@ -33,6 +34,7 @@
 /* Begin PBXFileReference section */
 		280A4D102DC90BF7003DAD3B /* SpriteKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SpriteKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.4.sdk/System/Library/Frameworks/SpriteKit.framework; sourceTree = DEVELOPER_DIR; };
 		280A4D152DC90D14003DAD3B /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.4.sdk/System/Library/Frameworks/SwiftUI.framework; sourceTree = DEVELOPER_DIR; };
+		280A4D1A2DC91261003DAD3B /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.4.sdk/System/Library/Frameworks/UIKit.framework; sourceTree = DEVELOPER_DIR; };
 		2883E2E12DC8C3550061EAB2 /* Decodey.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Decodey.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2883E2EF2DC8C3570061EAB2 /* DecodeyTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DecodeyTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		2883E2F92DC8C3570061EAB2 /* DecodeyUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DecodeyUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -64,6 +66,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				280A4D112DC90BF7003DAD3B /* SpriteKit.framework in Frameworks */,
+				280A4D1B2DC91261003DAD3B /* UIKit.framework in Frameworks */,
 				280A4D162DC90D14003DAD3B /* SwiftUI.framework in Frameworks */,
 				2885FE0D2DC8E97600A9F89D /* GRDB in Frameworks */,
 			);
@@ -112,6 +115,7 @@
 		2885FE0B2DC8E97600A9F89D /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				280A4D1A2DC91261003DAD3B /* UIKit.framework */,
 				280A4D152DC90D14003DAD3B /* SwiftUI.framework */,
 				280A4D102DC90BF7003DAD3B /* SpriteKit.framework */,
 			);

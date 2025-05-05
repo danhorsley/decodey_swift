@@ -1,4 +1,10 @@
 import SwiftUI
+import SpriteKit
+#if os(iOS) || os(tvOS)
+import UIKit
+#elseif os(macOS)
+import AppKit
+#endif
 
 struct ContentView: View {
     @State private var game = Game()
@@ -23,8 +29,7 @@ struct ContentView: View {
                 .edgesIgnoringSafeArea(.all)
                 
             // Matrix rain effect (only visible when game is won)
-            MatrixRainView(active: showMatrixRain, color: appStyle.darkText)
-                .allowsHitTesting(false) // Prevent interaction with the effect
+            MatrixRainEffect(active: showMatrixRain, color: convertToSKColor(color: appStyle.darkText))
             
             VStack(spacing: appStyle.letterSpacing * 2) {
                 // Header
@@ -444,4 +449,20 @@ struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView()
     }
+}
+
+func convertToSKColor(color: Color) -> SKColor {
+    #if os(iOS) || os(tvOS)
+    let uiColor = UIColor(color)
+    return SKColor(red: CGFloat(uiColor.cgColor.components?[0] ?? 0),
+                  green: CGFloat(uiColor.cgColor.components?[1] ?? 0),
+                   blue: CGFloat(uiColor.cgColor.components?[2] ?? 0),
+                  alpha: CGFloat(uiColor.cgColor.components?[3] ?? 1))
+    #elseif os(macOS)
+    let nsColor = NSColor(color)
+    return NSColor(red: CGFloat(nsColor.redComponent),
+                 green: CGFloat(nsColor.greenComponent),
+                  blue: CGFloat(nsColor.blueComponent),
+                 alpha: CGFloat(nsColor.alphaComponent))
+    #endif
 }
