@@ -7,28 +7,26 @@ struct ContentView: View {
     @State private var showMatrixRain = false
     @State private var showStatsSheet = false
     @State private var showQuoteManagerSheet = false
+    @State private var showStyleEditorSheet = false
     
-    // Theme colors
-    let primaryColor = Color(red: 0/255, green: 66/255, blue: 170/255) // #0042AA
-    let darkBackground = Color(red: 34/255, green: 34/255, blue: 34/255) // #222222
-    let darkText = Color(red: 76/255, green: 201/255, blue: 240/255) // #4cc9f0
+    // Style management
+    @StateObject private var appStyle = AppStyle.load() ?? AppStyle()
+    @State private var isDarkMode = true
     
     // Layout settings
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
-    @State private var isDarkMode = true
     
     var body: some View {
         ZStack {
             // Background
-            (isDarkMode ? darkBackground : Color.white)
+            (isDarkMode ? appStyle.darkBackground : Color.white)
                 .edgesIgnoringSafeArea(.all)
                 
-            // Matrix rain effect (only visible when in dark mode and game is won)
-            if showMatrixRain {
-                MatrixRainView(active: true, color: darkText)
-            }
+            // Matrix rain effect (only visible when game is won)
+            MatrixRainView(active: showMatrixRain, color: appStyle.darkText)
+                .allowsHitTesting(false) // Prevent interaction with the effect
             
-            VStack(spacing: 16) {
+            VStack(spacing: appStyle.letterSpacing * 2) {
                 // Header
                 HStack {
                     Menu {
@@ -44,6 +42,12 @@ struct ContentView: View {
                             Label("Manage Quotes", systemImage: "quote.bubble")
                         }
                         
+                        Button(action: {
+                            showStyleEditorSheet = true
+                        }) {
+                            Label("Style Editor", systemImage: "paintbrush")
+                        }
+                        
                         Divider()
                         
                         Button(action: {
@@ -53,16 +57,16 @@ struct ContentView: View {
                         }
                     } label: {
                         Image(systemName: "ellipsis.circle")
-                            .foregroundColor(isDarkMode ? darkText : primaryColor)
+                            .foregroundColor(isDarkMode ? appStyle.darkText : appStyle.primaryColor)
                             .font(.title2)
                     }
-                    .padding(.leading)
+                    .padding(.leading, appStyle.contentPadding)
                     
                     Spacer()
                     
                     Text("decodey")
-                        .font(.custom("Courier", size: 28).bold())
-                        .foregroundColor(isDarkMode ? darkText : primaryColor)
+                        .font(.custom("Courier", size: appStyle.titleFontSize).bold())
+                        .foregroundColor(isDarkMode ? appStyle.darkText : appStyle.primaryColor)
                     
                     Spacer()
                     
@@ -70,15 +74,15 @@ struct ContentView: View {
                         isDarkMode.toggle()
                     }) {
                         Image(systemName: isDarkMode ? "sun.max.fill" : "moon.fill")
-                            .foregroundColor(isDarkMode ? darkText : primaryColor)
+                            .foregroundColor(isDarkMode ? appStyle.darkText : appStyle.primaryColor)
                             .font(.title2)
                     }
-                    .padding(.trailing)
+                    .padding(.trailing, appStyle.contentPadding)
                 }
                 .padding(.top)
                 
                 // Display encrypted and current text - always stacked vertically
-                VStack(spacing: 8) {
+                VStack(spacing: appStyle.letterSpacing) {
                     // First text area (encrypted)
                     ZStack(alignment: .topLeading) {
                         // Background
@@ -89,14 +93,14 @@ struct ContentView: View {
                         // Text content
                         VStack(alignment: .leading) {
                             Text("Encrypted:")
-                                .font(.caption)
-                                .foregroundColor(isDarkMode ? .gray : .gray)
+                                .font(.system(size: appStyle.captionFontSize))
+                                .foregroundColor(.gray)
                                 .padding(.top, 8)
                                 .padding(.leading, 8)
                             
                             Text(game.encrypted)
-                                .font(.system(.body, design: .monospaced))
-                                .foregroundColor(isDarkMode ? .gray : .gray)
+                                .font(.system(size: appStyle.bodyFontSize, design: .monospaced))
+                                .foregroundColor(.gray)
                                 .padding(8)
                         }
                     }
@@ -112,20 +116,20 @@ struct ContentView: View {
                         // Text content
                         VStack(alignment: .leading) {
                             Text("Your solution:")
-                                .font(.caption)
-                                .foregroundColor(isDarkMode ? darkText : primaryColor)
+                                .font(.system(size: appStyle.captionFontSize))
+                                .foregroundColor(isDarkMode ? appStyle.darkText : appStyle.primaryColor)
                                 .padding(.top, 8)
                                 .padding(.leading, 8)
                             
                             Text(game.currentDisplay)
-                                .font(.system(.body, design: .monospaced))
-                                .foregroundColor(isDarkMode ? darkText : primaryColor)
+                                .font(.system(size: appStyle.bodyFontSize, design: .monospaced))
+                                .foregroundColor(isDarkMode ? appStyle.darkText : appStyle.primaryColor)
                                 .padding(8)
                         }
                     }
                     .frame(maxWidth: .infinity)
                 }
-                .padding(.horizontal)
+                .padding(.horizontal, appStyle.contentPadding)
                 
                 // Game status
                 HStack {
@@ -144,13 +148,13 @@ struct ContentView: View {
                                 .font(.headline)
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 8)
-                                .background(isDarkMode ? darkText : primaryColor)
+                                .background(isDarkMode ? appStyle.darkText : appStyle.primaryColor)
                                 .foregroundColor(.white)
                                 .cornerRadius(8)
                         }
                     }
                 }
-                .padding(.horizontal)
+                .padding(.horizontal, appStyle.contentPadding)
                 
                 // Game Dashboard
                 GameDashboardView(
@@ -158,8 +162,8 @@ struct ContentView: View {
                     showWinMessage: $showWinMessage,
                     showLoseMessage: $showLoseMessage,
                     isDarkMode: $isDarkMode,
-                    primaryColor: primaryColor,
-                    darkText: darkText
+                    primaryColor: appStyle.primaryColor,
+                    darkText: appStyle.darkText
                 )
                 .padding(.top, 8)
                 
@@ -172,13 +176,16 @@ struct ContentView: View {
                     .transition(.opacity)
                     .animation(.easeInOut(duration: 0.5), value: showWinMessage)
                     .onAppear {
-                        print("Win overlay appeared, setting showMatrixRain to true")
-                        // Show matrix rain when win overlay appears
-                        DispatchQueue.main.async {
-                            withAnimation {
+                        // Show matrix rain with a short delay for better visual effect
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            withAnimation(.easeIn(duration: 0.8)) {
                                 showMatrixRain = true
                             }
                         }
+                    }
+                    .onDisappear {
+                        // Ensure matrix rain stops when overlay is dismissed
+                        showMatrixRain = false
                     }
             }
             
@@ -194,6 +201,9 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showQuoteManagerSheet) {
             QuoteManagerView()
+        }
+        .sheet(isPresented: $showStyleEditorSheet) {
+            StyleEditorView(appStyle: appStyle)
         }
         .onAppear {
             // Try to load saved game
@@ -250,11 +260,11 @@ struct ContentView: View {
     
     // Win message overlay
     var winOverlay: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: appStyle.letterSpacing * 2) {
             Text("You Win!")
                 .font(.title)
                 .fontWeight(.bold)
-                .foregroundColor(isDarkMode ? darkText : primaryColor)
+                .foregroundColor(isDarkMode ? appStyle.darkText : appStyle.primaryColor)
             
             Text(game.solution)
                 .font(.headline)
@@ -313,7 +323,7 @@ struct ContentView: View {
                     .font(.headline)
                     .padding(.horizontal, 24)
                     .padding(.vertical, 12)
-                    .background(isDarkMode ? darkText : primaryColor)
+                    .background(isDarkMode ? appStyle.darkText : appStyle.primaryColor)
                     .foregroundColor(.white)
                     .cornerRadius(12)
             }
@@ -347,7 +357,7 @@ struct ContentView: View {
     
     // Lose message overlay
     var loseOverlay: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: appStyle.letterSpacing * 2) {
             Text("Game Over")
                 .font(.title)
                 .fontWeight(.bold)

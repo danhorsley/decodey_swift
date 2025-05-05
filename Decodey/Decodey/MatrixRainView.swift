@@ -1,166 +1,119 @@
-import SwiftUI
-import Combine
+import SpriteKit
 
-struct MatrixRainView: View {
-    let active: Bool
-    let color: Color
+class MatrixRainView: SKScene {
+    private var drops: [CGFloat] = []
+    private var speeds: [CGFloat] = []
+    private var characters: [Character] = []
+    private var nodes: [[SKLabelNode]] = [] // Array of nodes for head and trail
+    private let fontSize: CGFloat = 14
+    private let color = SKColor(red: 0, green: 1, blue: 0.255, alpha: 1) // #00ff41
+    private let fadeSpeed: CGFloat = 0.05
+    private let speedFactor: CGFloat = 1.0
+    private let chars = "01ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ♠♥♦♣★☆⋆§¶†‡※⁂⁑⁎⁕≡≈≠≤≥÷«»"
+    private var isActive: Bool = true
     
-    // Configuration
-    let density: Int = 20  // Increased density for better visual effect
-    let speedFactor: Double = 1.2  // Slightly faster for more dynamic effect
+    override init(size: CGSize) {
+        super.init(size: size)
+        backgroundColor = .clear
+        scaleMode = .resizeFill
+        initializeDrops()
+    }
     
-    // Characters to use - include more cryptographic symbols for variety
-    let chars = "01♠♥♦♣※⧠⧫⁂☤⚕☢⚛☯☸⟁⟒ΘΔΦΨΩ αβγδεζηθικλμνξπρστυφχψωАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"
+    required init?(coder aDecoder: NSCoder) {
+        super.init(coder: aDecoder)
+        backgroundColor = .clear
+        scaleMode = .resizeFill
+        initializeDrops()
+    }
     
-    // State variables
-    @State private var raindrops: [Raindrop] = []
-    @State private var size: CGSize = .zero
-    
-    // Timer for animation
-    @State private var timer = Timer.publish(every: 0.05, on: .main, in: .common)
-    @State private var timerSubscription: AnyCancellable? = nil
-    
-    var body: some View {
-        ZStack {
-            // Semi-transparent black background
-            Color.black.opacity(0.7)
-                .edgesIgnoringSafeArea(.all)
+    private func initializeDrops() {
+        removeAllChildren()
+        drops.removeAll()
+        speeds.removeAll()
+        characters.removeAll()
+        nodes.removeAll()
+        
+        let columns = Int(size.width / fontSize)
+        drops = Array(repeating: 0, count: columns)
+        speeds = Array(repeating: 0, count: columns)
+        characters = Array(repeating: "0", count: columns)
+        nodes = Array(repeating: [], count: columns)
+        
+        for i in 0..<columns {
+            drops[i] = CGFloat.random(in: -size.height / fontSize...0)
+            speeds[i] = (CGFloat.random(in: 0.5...1) * speedFactor)
+            characters[i] = chars.randomElement() ?? "0"
             
-            GeometryReader { geometry in
-                ZStack {
-                    ForEach(Array(0..<min(raindrops.count, 100)), id: \.self) { index in
-                        Text(String(raindrops[index].char))
-                            .font(.system(size: 14, design: .monospaced))
-                            .fontWeight(.medium)
-                            .foregroundColor(color.opacity(raindrops[index].opacity))
-                            .position(x: raindrops[index].x,
-                                      y: raindrops[index].y)
-                            .shadow(color: color.opacity(0.8), radius: 1, x: 0, y: 0)
-                    }
-                }
-                .onAppear {
-                    size = geometry.size
-                    initializeRaindrops()
-                    startTimer()
-                }
-                .onDisappear {
-                    stopTimer()
-                }
-                .onChange(of: geometry.size) { newSize in
-                    size = newSize
-                    initializeRaindrops()
-                }
-            }
-        }
-        .opacity(active ? 1 : 0)
-        .animation(.easeIn(duration: 0.6), value: active)
-        .onChange(of: active) { isActive in
-            if isActive {
-                startTimer()
-            } else {
-                stopTimer()
+            // Create head and trail nodes
+            for j in 0..<20 { // Up to 20 trail characters
+                let node = SKLabelNode(fontNamed: "Menlo")
+                node.fontSize = fontSize
+                node.fontColor = color
+                node.text = String(characters[i])
+                node.position = CGPoint(x: CGFloat(i) * fontSize + fontSize / 2, y: (drops[i] - CGFloat(j)) * fontSize)
+                node.alpha = j == 0 ? 1 : pow(0.8, CGFloat(j)) // Head at full opacity, trail decays
+                node.zPosition = CGFloat(-j) // Ensure head is on top
+                nodes[i].append(node)
+                addChild(node)
             }
         }
     }
     
-    private func startTimer() {
-        stopTimer() // Ensure any existing timer is stopped
+    override func update(_ currentTime: TimeInterval TRUE) {
+        guard isActive else { return }
         
-        timer = Timer.publish(every: 0.05, on: .main, in: .common)
+        // Apply fade effect to background
+        let fadeNode = SKShapeNode(rect: frame)
+        fadeNode.fillColor = .black.withAlphaComponent(fadeSpeed * 1.5)
+        fadeNode.zPosition = -100
+        addChild(fadeNode)
+        fadeNode.run(SKAction.sequence([
+            SKAction.wait(forDuration: 0.1),
+            SKAction.removeFromParent()
+        ]))
         
-        // Change this line - use .autoconnect() instead of .connect()
-        timerSubscription = timer.autoconnect().sink { _ in
-            if active {
-                updateRaindrops()
+        // Update drops
+        for i in 0..<drops.count {
+            drops[i] += speeds[i]
+            
+            // Occasionally change character
+            if Int.random(in: 0...8) == 0 {
+                characters[i] = chars.randomElement() ?? "0"
+            }
+            
+            // Update node positions and text
+            for j in 0..<nodes[i].count {
+                let y = (drops[i] - CGFloat(j)) * fontSize
+                nodes[i][j].position.y = y
+                nodes[i][j].text = String(characters[i])
+                nodes[i][j].alpha = j == 0 ? 1 : pow(0.8, CGFloat(j)) // Update trail opacity
+            }
+            
+            // Reset drop when it goes off screen
+            if drops[i] * fontSize > size.height && Bool.random(probability: 0.025) {
+                drops[i] = CGFloat.random(in: -20...0)
+                speeds[i] = (CGFloat.random(in: 0.5...1) * speedFactor)
+                characters[i] = chars.randomElement() ?? "0"
+                for j in 0..<nodes[i].count {
+                    nodes[i][j].position.y = (drops[i] - CGFloat(j)) * fontSize
+                    nodes[i][j].text = String(characters[i])
+                }
             }
         }
     }
     
-    private func stopTimer() {
-        timerSubscription?.cancel()
-        timerSubscription = nil
+    func setActive(_ active: Bool) {
+        isActive = active
     }
     
-    private func initializeRaindrops() {
-        guard size.width > 0, size.height > 0 else { return }
-        
-        raindrops = []
-        
-        // Calculate number of columns based on width
-        let fontSize: CGFloat = 14
-        let columnWidth: CGFloat = fontSize * 1.0  // Slightly tighter spacing
-        let columns = Int(size.width / columnWidth)
-        
-        // Create raindrops with more variety
-        for i in 0..<min(columns, density) {
-            let x = CGFloat(i) * (size.width / CGFloat(min(columns, density)))
-            let y = CGFloat.random(in: -size.height..<0)
-            let speed = Double.random(in: 1...4) * speedFactor
-            let char = chars.randomElement() ?? "0"
-            let opacity = Double.random(in: 0.5...1.0)
-            
-            raindrops.append(Raindrop(x: x, y: y, speed: speed, char: char, opacity: opacity))
-        }
-        
-        // Add some extra raindrops for a more dense effect
-        for _ in 0..<density/2 {
-            let x = CGFloat.random(in: 0..<size.width)
-            let y = CGFloat.random(in: -size.height..<0)
-            let speed = Double.random(in: 1...4) * speedFactor
-            let char = chars.randomElement() ?? "0"
-            let opacity = Double.random(in: 0.5...1.0)
-            
-            raindrops.append(Raindrop(x: x, y: y, speed: speed, char: char, opacity: opacity))
-        }
-    }
-    
-    private func updateRaindrops() {
-        guard !raindrops.isEmpty else { return }
-        
-        var updatedDrops = raindrops
-        for i in 0..<updatedDrops.count {
-            // Move the raindrop down
-            updatedDrops[i].y += CGFloat(updatedDrops[i].speed)
-            
-            // Occasionally change the character (more frequently for a dynamic effect)
-            if Int.random(in: 0...5) == 0 {
-                updatedDrops[i].char = chars.randomElement() ?? "0"
-            }
-            
-            // Occasionally change the opacity for a "shimmer" effect
-            if Int.random(in: 0...10) == 0 {
-                updatedDrops[i].opacity = Double.random(in: 0.5...1.0)
-            }
-            
-            // Reset if it's gone off screen
-            if updatedDrops[i].y > size.height {
-                updatedDrops[i].y = CGFloat.random(in: -50..<0)
-                updatedDrops[i].speed = Double.random(in: 1...4) * speedFactor
-                updatedDrops[i].opacity = Double.random(in: 0.5...1.0)
-                updatedDrops[i].char = chars.randomElement() ?? "0"
-            }
-        }
-        raindrops = updatedDrops
+    override func didChangeSize(_ oldSize: CGSize) {
+        initializeDrops()
     }
 }
 
-// Raindrop model
-struct Raindrop {
-    var x: CGFloat
-    var y: CGFloat
-    var speed: Double
-    var char: Character
-    var opacity: Double
-}
-
-struct MatrixRainView_Previews: PreviewProvider {
-    static var previews: some View {
-        ZStack {
-            Color.black.edgesIgnoringSafeArea(.all)
-            MatrixRainView(
-                active: true,
-                color: Color(red: 76/255, green: 201/255, blue: 240/255)
-            )
-        }
+// Extension for random probability
+extension Bool {
+    static func random(probability: Double) -> Bool {
+        return Double.random(in: 0...1) > (1 - probability)
     }
 }

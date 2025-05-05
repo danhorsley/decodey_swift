@@ -1,0 +1,37 @@
+{
+  "configurations" : [
+    {
+      "id" : "599B7126-11F7-4E8C-BAD1-1D33F42DD74B",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:Decodey.xcodeproj",
+      "identifier" : "2883E2E02DC8C3550061EAB2",
+      "name" : "Decodey"
+    }
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:Decodey.xcodeproj",
+        "identifier" : "2883E2EE2DC8C3570061EAB2",
+        "name" : "DecodeyTests"
+      }
+    },
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:Decodey.xcodeproj",
+        "identifier" : "2883E2F82DC8C3570061EAB2",
+        "name" : "DecodeyUITests"
+      }
+    }
+  ],
+  "version" : 1
+}
