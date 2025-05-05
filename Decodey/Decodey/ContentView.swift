@@ -342,7 +342,7 @@ struct ContentView: View {
         let seconds = seconds % 60
         
         return String(format: "%d:%02d", minutes, seconds)
-    }lay: some View {
+    var winOverlay: some View {
         VStack {
             Text("You Win!")
                 .font(.title)

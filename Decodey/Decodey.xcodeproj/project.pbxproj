@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		2883E3252DC8E2460061EAB2 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 2883E3242DC8E23A0061EAB2 /* README.md */; };
+		2885FE0D2DC8E97600A9F89D /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 2885FE0C2DC8E97600A9F89D /* GRDB */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -57,6 +58,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2885FE0D2DC8E97600A9F89D /* GRDB in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -84,6 +86,7 @@
 				2883E2E32DC8C3550061EAB2 /* Decodey */,
 				2883E2F22DC8C3570061EAB2 /* DecodeyTests */,
 				2883E2FC2DC8C3570061EAB2 /* DecodeyUITests */,
+				2885FE0B2DC8E97600A9F89D /* Frameworks */,
 				2883E2E22DC8C3550061EAB2 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -96,6 +99,13 @@
 				2883E2F92DC8C3570061EAB2 /* DecodeyUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		2885FE0B2DC8E97600A9F89D /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -118,6 +128,7 @@
 			);
 			name = Decodey;
 			packageProductDependencies = (
+				2885FE0C2DC8E97600A9F89D /* GRDB */,
 			);
 			productName = Decodey;
 			productReference = 2883E2E12DC8C3550061EAB2 /* Decodey.app */;
@@ -604,6 +615,14 @@
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		2885FE0C2DC8E97600A9F89D /* GRDB */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2883E31B2DC8E1640061EAB2 /* XCRemoteSwiftPackageReference "GRDB.swift" */;
+			productName = GRDB;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 2883E2D92DC8C3550061EAB2 /* Project object */;
 }
