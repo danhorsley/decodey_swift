@@ -39,7 +39,7 @@ struct Game {
     // Initialize with a predefined quote
     init() {
         // Sample quote
-        solution = "BELIEVE THAT LIFE IS WORTH LIVING AND YOUR BELIEF WILL HELP CREATE THE FACT."
+        solution = "MANNERS MAKETH MAN."
         
         // Generate a mapping for encryption
         var mapping: [Character: Character] = [:]

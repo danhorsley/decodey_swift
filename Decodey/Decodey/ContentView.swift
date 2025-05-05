@@ -15,11 +15,6 @@ struct ContentView: View {
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
     @State private var isDarkMode = true
     
-    var gridColumns: [GridItem] {
-        let columns = horizontalSizeClass == .compact ? 5 : 6
-        return Array(repeating: GridItem(.flexible(), spacing: 8), count: columns)
-    }
-    
     var body: some View {
         ZStack {
             // Background
@@ -27,11 +22,11 @@ struct ContentView: View {
                 .edgesIgnoringSafeArea(.all)
                 
             // Matrix rain effect (only visible when in dark mode and game is won)
-            if isDarkMode && showWinMessage {
+            if isDarkMode && showMatrixRain {
                 MatrixRainView(active: true, color: darkText)
             }
             
-            VStack(spacing: 20) {
+            VStack(spacing: 16) {
                 // Header
                 HStack {
                     Button(action: {
@@ -41,7 +36,7 @@ struct ContentView: View {
                             .foregroundColor(isDarkMode ? darkText : primaryColor)
                             .font(.title2)
                     }
-                    .padding()
+                    .padding(.leading)
                     
                     Spacer()
                     
@@ -54,30 +49,61 @@ struct ContentView: View {
                     Button(action: {
                         isDarkMode.toggle()
                     }) {
-                        Image(systemName: "gearshape.fill")
+                        Image(systemName: isDarkMode ? "sun.max.fill" : "moon.fill")
                             .foregroundColor(isDarkMode ? darkText : primaryColor)
                             .font(.title2)
                     }
-                    .padding()
+                    .padding(.trailing)
                 }
+                .padding(.top)
                 
-                // Display encrypted and current text
+                // Display encrypted and current text - always stacked vertically
                 VStack(spacing: 8) {
-                    Text(game.encrypted)
-                        .font(.system(.body, design: .monospaced))
-                        .foregroundColor(isDarkMode ? .gray : .gray)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(isDarkMode ? Color(white: 0.15) : Color(white: 0.95))
-                        .cornerRadius(8)
+                    // First text area (encrypted)
+                    ZStack(alignment: .topLeading) {
+                        // Background
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(isDarkMode ? Color(white: 0.15) : Color(white: 0.95))
+                            .frame(maxWidth: .infinity)
+                            
+                        // Text content
+                        VStack(alignment: .leading) {
+                            Text("Encrypted:")
+                                .font(.caption)
+                                .foregroundColor(isDarkMode ? .gray : .gray)
+                                .padding(.top, 8)
+                                .padding(.leading, 8)
+                            
+                            Text(game.encrypted)
+                                .font(.system(.body, design: .monospaced))
+                                .foregroundColor(isDarkMode ? .gray : .gray)
+                                .padding(8)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
                     
-                    Text(game.currentDisplay)
-                        .font(.system(.body, design: .monospaced))
-                        .foregroundColor(isDarkMode ? darkText : primaryColor)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(isDarkMode ? Color(white: 0.15) : Color(white: 0.95))
-                        .cornerRadius(8)
+                    // Second text area (solution)
+                    ZStack(alignment: .topLeading) {
+                        // Background
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(isDarkMode ? Color(white: 0.15) : Color(white: 0.95))
+                            .frame(maxWidth: .infinity)
+                            
+                        // Text content
+                        VStack(alignment: .leading) {
+                            Text("Your solution:")
+                                .font(.caption)
+                                .foregroundColor(isDarkMode ? darkText : primaryColor)
+                                .padding(.top, 8)
+                                .padding(.leading, 8)
+                            
+                            Text(game.currentDisplay)
+                                .font(.system(.body, design: .monospaced))
+                                .foregroundColor(isDarkMode ? darkText : primaryColor)
+                                .padding(8)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
                 }
                 .padding(.horizontal)
                 
@@ -89,82 +115,33 @@ struct ContentView: View {
                     
                     Spacer()
                     
-                    Button(action: {
-                        // Get a hint - implement this later
-                    }) {
-                        Text("HINT")
-                            .font(.headline)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
-                            .background(isDarkMode ? darkText : primaryColor)
-                            .foregroundColor(.white)
-                            .cornerRadius(8)
-                    }
-                }
-                .padding(.horizontal)
-                
-                // Encrypted letters grid (letters to decode)
-                VStack(alignment: .leading) {
-                    Text("Select a letter to decode:")
-                        .font(.subheadline)
-                        .foregroundColor(isDarkMode ? .white : .black)
-                        .padding(.bottom, 4)
-                    
-                    LazyVGrid(columns: gridColumns, spacing: 8) {
-                        ForEach(game.uniqueEncryptedLetters(), id: \.self) { letter in
-                            EncryptedLetterCell(
-                                letter: letter,
-                                isSelected: game.selectedLetter == letter,
-                                isGuessed: game.correctlyGuessed().contains(letter),
-                                frequency: game.letterFrequency[letter] ?? 0,
-                                action: {
-                                    withAnimation {
-                                        game.selectLetter(letter)
-                                    }
-                                },
-                                isDarkMode: isDarkMode,
-                                primaryColor: primaryColor,
-                                darkText: darkText
-                            )
+                    // Game reset button
+                    if game.hasWon || game.hasLost {
+                        Button(action: {
+                            resetGame()
+                        }) {
+                            Label("New Game", systemImage: "arrow.clockwise")
+                                .font(.headline)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                                .background(isDarkMode ? darkText : primaryColor)
+                                .foregroundColor(.white)
+                                .cornerRadius(8)
                         }
                     }
                 }
                 .padding(.horizontal)
                 
-                // Original letters grid (guessing)
-                VStack(alignment: .leading) {
-                    Text("Guess with:")
-                        .font(.subheadline)
-                        .foregroundColor(isDarkMode ? .white : .black)
-                        .padding(.bottom, 4)
-                    
-                    LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 7), spacing: 8) {
-                        ForEach(game.originalLetters, id: \.self) { letter in
-                            GuessLetterCell(
-                                letter: letter,
-                                isUsed: game.guessedMappings.values.contains(letter),
-                                action: {
-                                    if game.selectedLetter != nil {
-                                        withAnimation {
-                                            let _ = game.makeGuess(letter)
-                                            
-                                            // Check game status
-                                            if game.hasWon {
-                                                showWinMessage = true
-                                            } else if game.hasLost {
-                                                showLoseMessage = true
-                                            }
-                                        }
-                                    }
-                                },
-                                isDarkMode: isDarkMode,
-                                primaryColor: primaryColor,
-                                darkText: darkText
-                            )
-                        }
-                    }
-                }
-                .padding(.horizontal)
+                // Game Dashboard
+                GameDashboardView(
+                    game: $game,
+                    showWinMessage: $showWinMessage,
+                    showLoseMessage: $showLoseMessage,
+                    isDarkMode: $isDarkMode,
+                    primaryColor: primaryColor,
+                    darkText: darkText
+                )
+                .padding(.top, 8)
                 
                 Spacer()
             }
@@ -173,16 +150,32 @@ struct ContentView: View {
             if showWinMessage {
                 winOverlay
                     .transition(.opacity)
-                    .animation(.easeInOut(duration: 0.5))
+                    .animation(.easeInOut(duration: 0.5), value: showWinMessage)
+                    .onAppear {
+                        // Show matrix rain when win overlay appears
+                        DispatchQueue.main.async {
+                            withAnimation {
+                                showMatrixRain = true
+                            }
+                        }
+                    }
             }
             
             // Lose message overlay
             if showLoseMessage {
                 loseOverlay
                     .transition(.opacity)
-                    .animation(.easeInOut(duration: 0.5))
+                    .animation(.easeInOut(duration: 0.5), value: showLoseMessage)
             }
         }
+    }
+    
+    // Reset game function
+    private func resetGame() {
+        game = Game()
+        showWinMessage = false
+        showLoseMessage = false
+        showMatrixRain = false
     }
     
     // Win message overlay
@@ -202,9 +195,7 @@ struct ContentView: View {
                 .padding()
             
             Button(action: {
-                // Reset the game
-                game = Game()
-                showWinMessage = false
+                resetGame()
             }) {
                 Text("Play Again")
                     .font(.headline)
@@ -241,9 +232,7 @@ struct ContentView: View {
                 .padding()
             
             Button(action: {
-                // Reset the game
-                game = Game()
-                showLoseMessage = false
+                resetGame()
             }) {
                 Text("Try Again")
                     .font(.headline)
