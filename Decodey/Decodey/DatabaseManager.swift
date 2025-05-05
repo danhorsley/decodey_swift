@@ -21,7 +21,7 @@ class DatabaseManager {
             
             // Database path
             let dbPath = folderURL.appendingPathComponent("decodey.sqlite").path
-            
+            print("Database path: \(dbPath)")
             // Create the database
             dbQueue = try DatabaseQueue(path: dbPath)
             

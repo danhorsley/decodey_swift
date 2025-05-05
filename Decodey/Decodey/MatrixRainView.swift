@@ -1,11 +1,9 @@
 import SwiftUI
+import Combine
 
 struct MatrixRainView: View {
     let active: Bool
     let color: Color
-    
-    @State private var raindrops: [Raindrop] = []
-    @State private var size: CGSize = .zero
     
     // Configuration
     let density: Int = 20  // Increased density for better visual effect
@@ -14,8 +12,13 @@ struct MatrixRainView: View {
     // Characters to use - include more cryptographic symbols for variety
     let chars = "01♠♥♦♣※⧠⧫⁂☤⚕☢⚛☯☸⟁⟒ΘΔΦΨΩ αβγδεζηθικλμνξπρστυφχψωАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"
     
+    // State variables
+    @State private var raindrops: [Raindrop] = []
+    @State private var size: CGSize = .zero
+    
     // Timer for animation
-    let timer = Timer.publish(every: 0.05, on: .main, in: .common).autoconnect()
+    @State private var timer = Timer.publish(every: 0.05, on: .main, in: .common)
+    @State private var timerSubscription: AnyCancellable? = nil
     
     var body: some View {
         ZStack {
@@ -24,8 +27,8 @@ struct MatrixRainView: View {
                 .edgesIgnoringSafeArea(.all)
             
             GeometryReader { geometry in
-                ForEach(raindrops.indices, id: \.self) { index in
-                    if index < raindrops.count {
+                ZStack {
+                    ForEach(Array(0..<min(raindrops.count, 100)), id: \.self) { index in
                         Text(String(raindrops[index].char))
                             .font(.system(size: 14, design: .monospaced))
                             .fontWeight(.medium)
@@ -38,21 +41,44 @@ struct MatrixRainView: View {
                 .onAppear {
                     size = geometry.size
                     initializeRaindrops()
+                    startTimer()
                 }
-                // onChange handler for size changes
-                .onChange(of: geometry.size) {
-                    size = geometry.size
+                .onDisappear {
+                    stopTimer()
+                }
+                .onChange(of: geometry.size) { newSize in
+                    size = newSize
                     initializeRaindrops()
                 }
             }
         }
         .opacity(active ? 1 : 0)
         .animation(.easeIn(duration: 0.6), value: active)
-        .onReceive(timer) { _ in
+        .onChange(of: active) { isActive in
+            if isActive {
+                startTimer()
+            } else {
+                stopTimer()
+            }
+        }
+    }
+    
+    private func startTimer() {
+        stopTimer() // Ensure any existing timer is stopped
+        
+        timer = Timer.publish(every: 0.05, on: .main, in: .common)
+        
+        // Change this line - use .autoconnect() instead of .connect()
+        timerSubscription = timer.autoconnect().sink { _ in
             if active {
                 updateRaindrops()
             }
         }
+    }
+    
+    private func stopTimer() {
+        timerSubscription?.cancel()
+        timerSubscription = nil
     }
     
     private func initializeRaindrops() {
@@ -89,28 +115,32 @@ struct MatrixRainView: View {
     }
     
     private func updateRaindrops() {
-        for i in 0..<raindrops.count {
+        guard !raindrops.isEmpty else { return }
+        
+        var updatedDrops = raindrops
+        for i in 0..<updatedDrops.count {
             // Move the raindrop down
-            raindrops[i].y += CGFloat(raindrops[i].speed)
+            updatedDrops[i].y += CGFloat(updatedDrops[i].speed)
             
             // Occasionally change the character (more frequently for a dynamic effect)
             if Int.random(in: 0...5) == 0 {
-                raindrops[i].char = chars.randomElement() ?? "0"
+                updatedDrops[i].char = chars.randomElement() ?? "0"
             }
             
             // Occasionally change the opacity for a "shimmer" effect
             if Int.random(in: 0...10) == 0 {
-                raindrops[i].opacity = Double.random(in: 0.5...1.0)
+                updatedDrops[i].opacity = Double.random(in: 0.5...1.0)
             }
             
             // Reset if it's gone off screen
-            if raindrops[i].y > size.height {
-                raindrops[i].y = CGFloat.random(in: -50..<0)
-                raindrops[i].speed = Double.random(in: 1...4) * speedFactor
-                raindrops[i].opacity = Double.random(in: 0.5...1.0)
-                raindrops[i].char = chars.randomElement() ?? "0"
+            if updatedDrops[i].y > size.height {
+                updatedDrops[i].y = CGFloat.random(in: -50..<0)
+                updatedDrops[i].speed = Double.random(in: 1...4) * speedFactor
+                updatedDrops[i].opacity = Double.random(in: 0.5...1.0)
+                updatedDrops[i].char = chars.randomElement() ?? "0"
             }
         }
+        raindrops = updatedDrops
     }
 }
 

@@ -24,7 +24,7 @@ struct ContentView: View {
                 .edgesIgnoringSafeArea(.all)
                 
             // Matrix rain effect (only visible when in dark mode and game is won)
-            if isDarkMode && showMatrixRain {
+            if showMatrixRain {
                 MatrixRainView(active: true, color: darkText)
             }
             
@@ -172,6 +172,7 @@ struct ContentView: View {
                     .transition(.opacity)
                     .animation(.easeInOut(duration: 0.5), value: showWinMessage)
                     .onAppear {
+                        print("Win overlay appeared, setting showMatrixRain to true")
                         // Show matrix rain when win overlay appears
                         DispatchQueue.main.async {
                             withAnimation {
