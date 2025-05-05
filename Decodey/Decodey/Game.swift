@@ -42,7 +42,7 @@ struct Game {
         self.currentDisplay = ""
         self.selectedLetter = nil
         self.mistakes = 0
-        self.maxMistakes = 7
+        self.maxMistakes = 7 // Default value
         self.hasWon = false
         self.hasLost = false
         self.gameId = nil
@@ -67,7 +67,8 @@ struct Game {
         self.currentDisplay = ""
         self.selectedLetter = nil
         self.mistakes = 0
-        self.maxMistakes = difficultyToMaxMistakes(difficulty)
+        self.difficulty = difficulty
+        self.maxMistakes = 7 // Default value
         self.hasWon = false
         self.hasLost = false
         self.gameId = nil
@@ -78,7 +79,6 @@ struct Game {
         self.guessedMappings = [:]
         self.startTime = Date()
         self.lastUpdateTime = Date()
-        self.difficulty = difficulty
         
         // Generate the game
         setupGameWithSolution(solution)

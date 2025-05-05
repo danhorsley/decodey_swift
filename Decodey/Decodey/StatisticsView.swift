@@ -58,9 +58,9 @@ struct StatisticsView: View {
                 }
                 .padding(.bottom, 30)
             }
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationTitle("Statistics")
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .primaryAction) {
                     Button("Close") {
                         dismiss()
                     }
@@ -145,44 +145,48 @@ struct StatisticsView: View {
         
         let winPercentage = Double(gamesWon) / Double(gamesPlayed)
         
-        return VStack(alignment: .leading) {
-            Text("Win / Loss Record")
-                .font(.headline)
+        // Get screen width using GeometryReader instead of UIScreen
+        return GeometryReader { geometry in
+            VStack(alignment: .leading) {
+                Text("Win / Loss Record")
+                    .font(.headline)
+                    .padding(.horizontal)
+                
+                HStack(spacing: 0) {
+                    // Win portion
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(Color.green)
+                        .frame(width: max(CGFloat(winPercentage) * (geometry.size.width - 40), 0))
+                        .frame(height: 30)
+                    
+                    // Loss portion
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(Color.red)
+                        .frame(width: max(CGFloat(1 - winPercentage) * (geometry.size.width - 40), 0))
+                        .frame(height: 30)
+                }
                 .padding(.horizontal)
-            
-            HStack(spacing: 0) {
-                // Win portion
-                RoundedRectangle(cornerRadius: 4)
-                    .fill(Color.green)
-                    .frame(width: max(CGFloat(winPercentage) * UIScreen.main.bounds.width - 40, 0))
-                    .frame(height: 30)
                 
-                // Loss portion
-                RoundedRectangle(cornerRadius: 4)
-                    .fill(Color.red)
-                    .frame(width: max(CGFloat(1 - winPercentage) * UIScreen.main.bounds.width - 40, 0))
-                    .frame(height: 30)
+                HStack {
+                    Text("Won: \(gamesWon)")
+                        .font(.caption)
+                        .padding(.vertical, 4)
+                        .padding(.horizontal, 8)
+                        .background(Color.green.opacity(0.2))
+                        .cornerRadius(4)
+                    
+                    Text("Lost: \(gamesLost)")
+                        .font(.caption)
+                        .padding(.vertical, 4)
+                        .padding(.horizontal, 8)
+                        .background(Color.red.opacity(0.2))
+                        .cornerRadius(4)
+                }
+                .padding(.horizontal)
             }
-            .padding(.horizontal)
-            
-            HStack {
-                Text("Won: \(gamesWon)")
-                    .font(.caption)
-                    .padding(.vertical, 4)
-                    .padding(.horizontal, 8)
-                    .background(Color.green.opacity(0.2))
-                    .cornerRadius(4)
-                
-                Text("Lost: \(gamesLost)")
-                    .font(.caption)
-                    .padding(.vertical, 4)
-                    .padding(.horizontal, 8)
-                    .background(Color.red.opacity(0.2))
-                    .cornerRadius(4)
-            }
-            .padding(.horizontal)
+            .padding(.vertical)
         }
-        .padding(.vertical)
+        .frame(height: 100) // Fixed height for GeometryReader
         .eraseToAnyView()
     }
     
@@ -374,10 +378,4 @@ struct StatisticsView_Previews: PreviewProvider {
     static var previews: some View {
         StatisticsView()
     }
-}//
-//  StatisticsView.swift
-//  Decodey
-//
-//  Created by Daniel Horsley on 05/05/2025.
-//
-
+}

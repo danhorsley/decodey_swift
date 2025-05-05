@@ -27,25 +27,6 @@ struct ContentView: View {
             if isDarkMode && showMatrixRain {
                 MatrixRainView(active: true, color: darkText)
             }
-        .sheet(isPresented: $showStatsSheet) {
-            StatisticsView()
-        }
-        .sheet(isPresented: $showQuoteManagerSheet) {
-            QuoteManagerView()
-        }
-        .onAppear {
-            // Try to load saved game
-            if let savedGame = Game.loadSavedGame() {
-                self.game = savedGame
-                
-                // Check if the loaded game was already complete
-                if game.hasWon {
-                    showWinMessage = true
-                } else if game.hasLost {
-                    showLoseMessage = true
-                }
-            }
-        }
             
             VStack(spacing: 16) {
                 // Header
@@ -207,6 +188,25 @@ struct ContentView: View {
                     .animation(.easeInOut(duration: 0.5), value: showLoseMessage)
             }
         }
+        .sheet(isPresented: $showStatsSheet) {
+            StatisticsView()
+        }
+        .sheet(isPresented: $showQuoteManagerSheet) {
+            QuoteManagerView()
+        }
+        .onAppear {
+            // Try to load saved game
+            if let savedGame = Game.loadSavedGame() {
+                self.game = savedGame
+                
+                // Check if the loaded game was already complete
+                if game.hasWon {
+                    showWinMessage = true
+                } else if game.hasLost {
+                    showLoseMessage = true
+                }
+            }
+        }
     }
     
     // Reset game function
@@ -237,6 +237,14 @@ struct ContentView: View {
         showWinMessage = false
         showLoseMessage = false
         showMatrixRain = false
+    }
+    
+    // Format time in seconds to MM:SS
+    private func formatTime(_ seconds: Int) -> String {
+        let minutes = seconds / 60
+        let seconds = seconds % 60
+        
+        return String(format: "%d:%02d", minutes, seconds)
     }
     
     // Win message overlay
@@ -334,44 +342,6 @@ struct ContentView: View {
                 }
             }
         }
-    }
-    
-    // Format time in seconds to MM:SS
-    private func formatTime(_ seconds: Int) -> String {
-        let minutes = seconds / 60
-        let seconds = seconds % 60
-        
-        return String(format: "%d:%02d", minutes, seconds)
-    var winOverlay: some View {
-        VStack {
-            Text("You Win!")
-                .font(.title)
-                .fontWeight(.bold)
-                .foregroundColor(isDarkMode ? darkText : primaryColor)
-            
-            Text(game.solution)
-                .font(.headline)
-                .foregroundColor(.white)
-                .padding()
-                .background(Color.black.opacity(0.8))
-                .cornerRadius(8)
-                .padding()
-            
-            Button(action: {
-                resetGame()
-            }) {
-                Text("Play Again")
-                    .font(.headline)
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 12)
-                    .background(isDarkMode ? darkText : primaryColor)
-                    .foregroundColor(.white)
-                    .cornerRadius(12)
-            }
-        }
-        .padding(40)
-        .background(Color.black.opacity(0.85))
-        .cornerRadius(20)
     }
     
     // Lose message overlay

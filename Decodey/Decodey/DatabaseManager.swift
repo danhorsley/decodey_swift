@@ -139,6 +139,26 @@ class DatabaseManager {
             )
         }
     }
+    
+    // Helper function to convert Character dictionary to String dictionary for serialization
+    private func characterDictToStringDict(_ dict: [Character: Character]) -> [String: String] {
+        var result: [String: String] = [:]
+        for (key, value) in dict {
+            result[String(key)] = String(value)
+        }
+        return result
+    }
+    
+    // Helper function to convert String dictionary back to Character dictionary
+    private func stringDictToCharacterDict(_ dict: [String: String]) -> [Character: Character] {
+        var result: [Character: Character] = [:]
+        for (key, value) in dict {
+            if let keyChar = key.first, let valueChar = value.first {
+                result[keyChar] = valueChar
+            }
+        }
+        return result
+    }
 }
 
 // MARK: - Game Methods
@@ -146,45 +166,45 @@ extension DatabaseManager {
     /// Save a game to the database
     func saveGame(_ game: Game) throws {
         try dbQueue.write { db in
+            // Convert Character dictionaries to String dictionaries for serialization
+            let mappingStringDict = characterDictToStringDict(game.mapping)
+            let reverseMappingStringDict = characterDictToStringDict(game.correctMappings)
+            
             // Serialize the dictionaries and arrays
-            let mappingData = try JSONEncoder().encode(game.mapping)
-            let reverseMappingData = try JSONEncoder().encode(game.correctMappings)
-            let correctlyGuessedData = try JSONEncoder().encode(game.correctlyGuessed())
+            let mappingData = try JSONEncoder().encode(mappingStringDict)
+            let reverseMappingData = try JSONEncoder().encode(reverseMappingStringDict)
+            let correctlyGuessedData = try JSONEncoder().encode(game.correctlyGuessed().map { String($0) })
             
-            // Prepare the game record
-            let record: [String: DatabaseValueConvertible?] = [
-                "game_id": UUID().uuidString,
-                "original_text": game.solution,
-                "encrypted_text": game.encrypted,
-                "current_display": game.currentDisplay,
-                "solution": game.solution,
-                "mapping": mappingData,
-                "reverse_mapping": reverseMappingData,
-                "correctly_guessed": correctlyGuessedData,
-                "mistakes": game.mistakes,
-                "max_mistakes": game.maxMistakes,
-                "difficulty": "medium", // Default to medium, can be parameterized
-                "has_won": game.hasWon,
-                "has_lost": game.hasLost,
-                "is_complete": game.hasWon || game.hasLost,
-                "created_at": Date(),
-                "last_updated": Date()
-            ]
+            // Create a unique game ID if not present
+            let gameId = game.gameId ?? UUID().uuidString
             
-            // Insert the record
+            // Execute with individual arguments
             try db.execute(
                 sql: """
                     INSERT INTO games (
                         game_id, original_text, encrypted_text, current_display, solution,
                         mapping, reverse_mapping, correctly_guessed, mistakes, max_mistakes,
                         difficulty, has_won, has_lost, is_complete, created_at, last_updated
-                    ) VALUES (
-                        :game_id, :original_text, :encrypted_text, :current_display, :solution,
-                        :mapping, :reverse_mapping, :correctly_guessed, :mistakes, :max_mistakes,
-                        :difficulty, :has_won, :has_lost, :is_complete, :created_at, :last_updated
-                    )
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
-                arguments: record
+                arguments: [
+                    gameId,
+                    game.solution,
+                    game.encrypted,
+                    game.currentDisplay,
+                    game.solution,
+                    mappingData,
+                    reverseMappingData,
+                    correctlyGuessedData,
+                    game.mistakes,
+                    game.maxMistakes,
+                    "medium", // Default to medium
+                    game.hasWon,
+                    game.hasLost,
+                    game.hasWon || game.hasLost,
+                    Date(),
+                    Date()
+                ]
             )
         }
     }
@@ -192,40 +212,42 @@ extension DatabaseManager {
     /// Update an existing game in the database
     func updateGame(_ game: Game, gameId: String) throws {
         try dbQueue.write { db in
+            // Convert Character dictionaries to String dictionaries for serialization
+            let mappingStringDict = characterDictToStringDict(game.mapping)
+            let reverseMappingStringDict = characterDictToStringDict(game.correctMappings)
+            
             // Serialize the dictionaries and arrays
-            let mappingData = try JSONEncoder().encode(game.mapping)
-            let reverseMappingData = try JSONEncoder().encode(game.correctMappings)
-            let correctlyGuessedData = try JSONEncoder().encode(game.correctlyGuessed())
+            let mappingData = try JSONEncoder().encode(mappingStringDict)
+            let reverseMappingData = try JSONEncoder().encode(reverseMappingStringDict)
+            let correctlyGuessedData = try JSONEncoder().encode(game.correctlyGuessed().map { String($0) })
             
-            // Prepare the game record
-            let record: [String: DatabaseValueConvertible?] = [
-                "current_display": game.currentDisplay,
-                "mapping": mappingData,
-                "reverse_mapping": reverseMappingData,
-                "correctly_guessed": correctlyGuessedData,
-                "mistakes": game.mistakes,
-                "has_won": game.hasWon,
-                "has_lost": game.hasLost,
-                "is_complete": game.hasWon || game.hasLost,
-                "last_updated": Date()
-            ]
-            
-            // Update the record
+            // Execute with individual arguments
             try db.execute(
                 sql: """
                     UPDATE games SET
-                        current_display = :current_display,
-                        mapping = :mapping,
-                        reverse_mapping = :reverse_mapping,
-                        correctly_guessed = :correctly_guessed,
-                        mistakes = :mistakes,
-                        has_won = :has_won,
-                        has_lost = :has_lost,
-                        is_complete = :is_complete,
-                        last_updated = :last_updated
+                        current_display = ?,
+                        mapping = ?,
+                        reverse_mapping = ?,
+                        correctly_guessed = ?,
+                        mistakes = ?,
+                        has_won = ?,
+                        has_lost = ?,
+                        is_complete = ?,
+                        last_updated = ?
                     WHERE game_id = ?
                 """,
-                arguments: StatementArguments(record).appending(gameId)
+                arguments: [
+                    game.currentDisplay,
+                    mappingData,
+                    reverseMappingData,
+                    correctlyGuessedData,
+                    game.mistakes,
+                    game.hasWon,
+                    game.hasLost,
+                    game.hasWon || game.hasLost,
+                    Date(),
+                    gameId
+                ]
             )
         }
     }
@@ -244,32 +266,65 @@ extension DatabaseManager {
             // Return nil if no game found
             guard let row = row else { return nil }
             
-            // Get the mappings from the binary data
-            let mappingData = row["mapping"] as! Data
-            let reverseMappingData = row["reverse_mapping"] as! Data
-            let correctlyGuessedData = row["correctly_guessed"] as! Data
+            // Safely extract values from the row with proper type checking and error handling
+            guard let gameId = row["game_id"] as? String,
+                  let encrypted = row["encrypted_text"] as? String,
+                  let solution = row["solution"] as? String,
+                  let currentDisplay = row["current_display"] as? String,
+                  let mistakes = row["mistakes"] as? Int,
+                  let maxMistakes = row["max_mistakes"] as? Int,
+                  let hasWon = row["has_won"] as? Bool,
+                  let hasLost = row["has_lost"] as? Bool,
+                  let difficulty = row["difficulty"] as? String,
+                  let startTime = row["created_at"] as? Date,
+                  let lastUpdateTime = row["last_updated"] as? Date,
+                  let mappingData = row["mapping"] as? Data,
+                  let reverseMappingData = row["reverse_mapping"] as? Data,
+                  let correctlyGuessedData = row["correctly_guessed"] as? Data
+            else {
+                print("Failed to extract required game data from database row")
+                return nil
+            }
             
-            // Decode the mappings
-            let mapping = try JSONDecoder().decode([Character: Character].self, from: mappingData)
-            let reverseMapping = try JSONDecoder().decode([Character: Character].self, from: reverseMappingData)
-            let correctlyGuessed = try JSONDecoder().decode([Character].self, from: correctlyGuessedData)
-            
-            // Create a new game with the loaded data
-            // Note: This is a simplified approach - you'd need to modify your Game struct
-            // to support initialization from database data
-            var game = Game()
-            
-            // Update the game with loaded data
-            game.solution = row["solution"] as! String
-            game.encrypted = row["encrypted_text"] as! String
-            game.currentDisplay = row["current_display"] as! String
-            game.mistakes = row["mistakes"] as! Int
-            game.maxMistakes = row["max_mistakes"] as! Int
-            game.hasWon = row["has_won"] as! Bool
-            game.hasLost = row["has_lost"] as! Bool
-            
-            // Return the loaded game
-            return game
+            do {
+                // Decode the mappings with error handling
+                let mappingStringDict = try JSONDecoder().decode([String: String].self, from: mappingData)
+                let reverseMappingStringDict = try JSONDecoder().decode([String: String].self, from: reverseMappingData)
+                let correctlyGuessedStrings = try JSONDecoder().decode([String].self, from: correctlyGuessedData)
+                
+                // Convert String dictionaries back to Character dictionaries
+                let mapping = stringDictToCharacterDict(mappingStringDict)
+                let reverseMapping = stringDictToCharacterDict(reverseMappingStringDict)
+                
+                // Convert string array to character array for correctly guessed
+                var guessedMappings: [Character: Character] = [:]
+                for charStr in correctlyGuessedStrings {
+                    if let char = charStr.first, let original = reverseMapping[char] {
+                        guessedMappings[char] = original
+                    }
+                }
+                
+                // Create a game with loaded data
+                return Game(
+                    gameId: gameId,
+                    encrypted: encrypted,
+                    solution: solution,
+                    currentDisplay: currentDisplay,
+                    mapping: mapping,
+                    correctMappings: reverseMapping,
+                    guessedMappings: guessedMappings,
+                    mistakes: mistakes,
+                    maxMistakes: maxMistakes,
+                    hasWon: hasWon,
+                    hasLost: hasLost,
+                    difficulty: difficulty,
+                    startTime: startTime,
+                    lastUpdateTime: lastUpdateTime
+                )
+            } catch {
+                print("Error decoding game data: \(error)")
+                return nil
+            }
         }
     }
     
@@ -383,12 +438,13 @@ extension DatabaseManager {
             let rows = try Row.fetchAll(db, sql: "SELECT id, text, author, difficulty FROM quotes ORDER BY difficulty, text")
             
             for row in rows {
-                let id = row["id"] as! Int
-                let text = row["text"] as! String
-                let author = row["author"] as? String ?? "Unknown"
-                let difficulty = row["difficulty"] as! String
-                
-                quotes.append((id: id, text: text, author: author, difficulty: difficulty))
+                if let id = row["id"] as? Int,
+                   let text = row["text"] as? String {
+                    let author = row["author"] as? String ?? "Unknown"
+                    let difficulty = row["difficulty"] as? String ?? "medium"
+                    
+                    quotes.append((id: id, text: text, author: author, difficulty: difficulty))
+                }
             }
             
             return quotes
@@ -405,17 +461,31 @@ extension DatabaseManager {
                 return nil
             }
             
+            // Safely unwrap optional values
+            guard let gamesPlayed = row["games_played"] as? Int,
+                  let gamesWon = row["games_won"] as? Int,
+                  let currentStreak = row["current_streak"] as? Int,
+                  let bestStreak = row["best_streak"] as? Int,
+                  let totalScore = row["total_score"] as? Int,
+                  let averageMistakes = row["average_mistakes"] as? Double,
+                  let averageTime = row["average_time"] as? Double else {
+                print("Failed to extract required statistics from database row")
+                return nil
+            }
+            
+            let lastPlayedDate = row["last_played_date"] as? Date
+            
             return [
-                "games_played": row["games_played"] as! Int,
-                "games_won": row["games_won"] as! Int,
-                "win_percentage": calculatePercentage(row["games_won"] as! Int, outOf: row["games_played"] as! Int),
-                "current_streak": row["current_streak"] as! Int,
-                "best_streak": row["best_streak"] as! Int,
-                "total_score": row["total_score"] as! Int,
-                "average_score": (row["games_played"] as! Int) > 0 ? (row["total_score"] as! Int) / (row["games_played"] as! Int) : 0,
-                "average_mistakes": row["average_mistakes"] as! Double,
-                "average_time": row["average_time"] as! Double,
-                "last_played_date": row["last_played_date"] as? Date
+                "games_played": gamesPlayed,
+                "games_won": gamesWon,
+                "win_percentage": calculatePercentage(gamesWon, outOf: gamesPlayed),
+                "current_streak": currentStreak,
+                "best_streak": bestStreak,
+                "total_score": totalScore,
+                "average_score": gamesPlayed > 0 ? totalScore / gamesPlayed : 0,
+                "average_mistakes": averageMistakes,
+                "average_time": averageTime,
+                "last_played_date": lastPlayedDate as Any
             ]
         }
     }
@@ -425,10 +495,4 @@ extension DatabaseManager {
         guard total > 0 else { return 0.0 }
         return Double(value) / Double(total) * 100.0
     }
-}//
-//  DatabaseManager.swift
-//  Decodey
-//
-//  Created by Daniel Horsley on 05/05/2025.
-//
-
+}

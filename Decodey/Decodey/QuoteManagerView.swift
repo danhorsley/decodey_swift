@@ -62,13 +62,13 @@ struct QuoteManagerView: View {
             }
             .navigationTitle("Quote Manager")
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
+                ToolbarItem(placement: .cancellationAction) {
                     Button("Close") {
                         dismiss()
                     }
                 }
                 
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .primaryAction) {
                     Button(action: {
                         showingAddQuote = true
                     }) {
@@ -113,7 +113,7 @@ struct QuoteManagerView: View {
             }
             .navigationTitle("Add Quote")
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
                         showingAddQuote = false
                     }
@@ -179,10 +179,4 @@ struct QuoteManagerView_Previews: PreviewProvider {
     static var previews: some View {
         QuoteManagerView()
     }
-}//
-//  QuoteManagerView.swift
-//  Decodey
-//
-//  Created by Daniel Horsley on 05/05/2025.
-//
-
+}
