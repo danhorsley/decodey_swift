@@ -78,7 +78,10 @@ struct GameDashboardView: View {
                         },
                         isDarkMode: isDarkMode,
                         primaryColor: primaryColor,
-                        darkText: darkText
+                        darkText: darkText,
+                        cellSize: appStyle.letterCellSize,
+                        fontSize: appStyle.bodyFontSize,
+                        fontFamily: appStyle.fontFamily
                     )
                 }
             }
@@ -123,7 +126,10 @@ struct GameDashboardView: View {
                         },
                         isDarkMode: isDarkMode,
                         primaryColor: primaryColor,
-                        darkText: darkText
+                        darkText: darkText,
+                        cellSize: appStyle.guessLetterCellSize,
+                        fontSize: appStyle.bodyFontSize,
+                        fontFamily: appStyle.fontFamily
                     )
                 }
             }
@@ -155,7 +161,7 @@ struct GameDashboardView: View {
                 } else {
                     // Show remaining hints
                     Text("\(game.maxMistakes - game.mistakes)")
-                        .font(.system(.title, design: .monospaced))
+                        .font(.system(.title, design: appStyle.fontFamily == "System" ? .default : .monospaced))
                         .fontWeight(.bold)
                         .foregroundColor(isDarkMode ? darkText : primaryColor)
                 }
@@ -197,6 +203,8 @@ struct GameDashboardView: View {
 // Preview provider for SwiftUI canvas
 struct GameDashboardView_Previews: PreviewProvider {
     static var previews: some View {
+        let appStyle = AppStyle()
+        
         GameDashboardView(
             game: .constant(Game()),
             showWinMessage: .constant(false),
@@ -206,7 +214,7 @@ struct GameDashboardView_Previews: PreviewProvider {
             darkText: Color(red: 76/255, green: 201/255, blue: 240/255),
             showTextHelpers: true
         )
-        .environmentObject(AppStyle())
+        .environmentObject(appStyle)
         .previewLayout(.sizeThatFits)
         .padding()
         .background(Color(red: 34/255, green: 34/255, blue: 34/255))

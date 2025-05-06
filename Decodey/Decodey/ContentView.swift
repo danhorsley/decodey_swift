@@ -13,10 +13,14 @@ struct ContentView: View {
     @State private var showMatrixRain = false
     @State private var showAboutSheet = false
     @State private var showSettingsSheet = false
+    @State private var showStyleEditorSheet = false
     @State private var isMenuOpen = false
     
     // User settings
     @StateObject private var userSettings = UserSettings()
+    // Style settings
+    @StateObject private var appStyle = AppStyle()
+    
     @State private var isDarkMode: Bool
     
     // Text helpers setting from userSettings
@@ -32,17 +36,19 @@ struct ContentView: View {
     
     var body: some View {
         ZStack {
-            // Background
-            (isDarkMode ? Color(red: 34/255, green: 34/255, blue: 34/255) : Color.white)
+            // Background - now using appStyle
+            (isDarkMode ? appStyle.darkBackground : Color.white)
                 .edgesIgnoringSafeArea(.all)
                 
             // Matrix rain effect (only visible when game is won)
             if showMatrixRain {
-                MatrixRainEffect(active: showMatrixRain, color: SKColor(red: 76/255, green: 201/255, blue: 240/255, alpha: 1.0))
+                MatrixRainEffect(active: showMatrixRain, color: isDarkMode ?
+                    convertToSKColor(color: appStyle.darkText) :
+                    convertToSKColor(color: appStyle.primaryColor))
                     .edgesIgnoringSafeArea(.all)
             }
             
-            VStack(spacing: 12) {
+            VStack(spacing: appStyle.letterSpacing * 3) {
                 // Header
                 HStack {
                     // Menu button
@@ -52,7 +58,7 @@ struct ContentView: View {
                         }
                     }) {
                         Image(systemName: "line.horizontal.3")
-                            .foregroundColor(isDarkMode ? Color(red: 76/255, green: 201/255, blue: 240/255) : Color(red: 0/255, green: 66/255, blue: 170/255))
+                            .foregroundColor(isDarkMode ? appStyle.darkText : appStyle.primaryColor)
                             .font(.title2)
                     }
                     .padding(.leading)
@@ -60,8 +66,11 @@ struct ContentView: View {
                     Spacer()
                     
                     Text("decodey")
-                        .font(.custom("Courier", size: 28).bold())
-                        .foregroundColor(isDarkMode ? Color(red: 76/255, green: 201/255, blue: 240/255) : Color(red: 0/255, green: 66/255, blue: 170/255))
+                        .font(.system(size: appStyle.titleFontSize,
+                               design: appStyle.fontFamily == "Courier" || appStyle.fontFamily == "Menlo" ||
+                                      appStyle.fontFamily == "SF Mono" ? .monospaced : .default))
+                        .fontWeight(.bold)
+                        .foregroundColor(isDarkMode ? appStyle.darkText : appStyle.primaryColor)
                     
                     Spacer()
                     
@@ -71,7 +80,7 @@ struct ContentView: View {
                         userSettings.isDarkMode = isDarkMode
                     }) {
                         Image(systemName: isDarkMode ? "sun.max.fill" : "moon.fill")
-                            .foregroundColor(isDarkMode ? Color(red: 76/255, green: 201/255, blue: 240/255) : Color(red: 0/255, green: 66/255, blue: 170/255))
+                            .foregroundColor(isDarkMode ? appStyle.darkText : appStyle.primaryColor)
                             .font(.title2)
                     }
                     .padding(.trailing)
@@ -79,42 +88,44 @@ struct ContentView: View {
                 .padding(.top)
                 
                 // Display encrypted and current text
-                VStack(spacing: 8) {
+                VStack(spacing: appStyle.letterSpacing * 2) {
                     // Encrypted text with monospaced font
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: appStyle.letterSpacing / 2) {
                         if showTextHelpers {
                             Text("Encrypted:")
-                                .font(.system(size: 12))
+                                .font(.system(size: appStyle.captionFontSize))
                                 .foregroundColor(.gray)
                         }
                         
                         Text(game.encrypted)
-                            .font(.system(size: 16, design: .monospaced))
-                            .tracking(2) // Add letter spacing
-                            .lineSpacing(4) // Add line spacing
+                            .font(.system(size: appStyle.bodyFontSize,
+                                  design: appStyle.fontFamily == "System" ? .default : .monospaced))
+                            .tracking(appStyle.textLetterSpacing) // Use style for letter spacing
+                            .lineSpacing(appStyle.textLineSpacing) // Use style for line spacing
                             .foregroundColor(.gray)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 16)
+                    .padding(.horizontal, appStyle.contentPadding)
                     
                     // Solution with blocks
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: appStyle.letterSpacing / 2) {
                         if showTextHelpers {
                             Text("Your solution:")
-                                .font(.system(size: 12))
-                                .foregroundColor(isDarkMode ? Color(red: 76/255, green: 201/255, blue: 240/255) : Color(red: 0/255, green: 66/255, blue: 170/255))
+                                .font(.system(size: appStyle.captionFontSize))
+                                .foregroundColor(isDarkMode ? appStyle.darkText : appStyle.primaryColor)
                         }
                         
                         Text(game.currentDisplay)
-                            .font(.system(size: 16, design: .monospaced))
-                            .tracking(2) // Match letter spacing with encrypted text
-                            .lineSpacing(4) // Match line spacing with encrypted text
-                            .foregroundColor(isDarkMode ? Color(red: 76/255, green: 201/255, blue: 240/255) : Color(red: 0/255, green: 66/255, blue: 170/255))
+                            .font(.system(size: appStyle.bodyFontSize,
+                                  design: appStyle.fontFamily == "System" ? .default : .monospaced))
+                            .tracking(appStyle.textLetterSpacing) // Use style for letter spacing
+                            .lineSpacing(appStyle.textLineSpacing) // Use style for line spacing
+                            .foregroundColor(isDarkMode ? appStyle.darkText : appStyle.primaryColor)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 16)
+                    .padding(.horizontal, appStyle.contentPadding)
                 }
-                .padding(.vertical, 12)
+                .padding(.vertical, appStyle.letterSpacing * 3)
                 
                 // Game reset button - only show if game is completed
                 if game.hasWon || game.hasLost {
@@ -128,18 +139,25 @@ struct ContentView: View {
                                 .font(.headline)
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 8)
-                                .background(isDarkMode ? Color(red: 76/255, green: 201/255, blue: 240/255) : Color(red: 0/255, green: 66/255, blue: 170/255))
+                                .background(isDarkMode ? appStyle.darkText : appStyle.primaryColor)
                                 .foregroundColor(.white)
                                 .cornerRadius(8)
                         }
                     }
-                    .padding(.horizontal, 16)
+                    .padding(.horizontal, appStyle.contentPadding)
                 }
                 
-                // Game grids with hint button
+                // Game grids with hint button - now using appStyle
                 GameGridsView(
                     game: $game,
                     isDarkMode: $isDarkMode,
+                    primaryColor: isDarkMode ? appStyle.darkText : appStyle.primaryColor,
+                    darkText: appStyle.darkText,
+                    letterCellSize: appStyle.letterCellSize,
+                    guessLetterCellSize: appStyle.guessLetterCellSize,
+                    letterSpacing: appStyle.letterSpacing,
+                    fontFamily: appStyle.fontFamily,
+                    fontSize: appStyle.bodyFontSize,
                     showTextHelpers: showTextHelpers,
                     onWin: {
                         showWinMessage = true
@@ -148,7 +166,7 @@ struct ContentView: View {
                         showLoseMessage = true
                     }
                 )
-                .padding(.top, 4)
+                .padding(.top, appStyle.letterSpacing)
                 
                 Spacer()
             }
@@ -184,8 +202,10 @@ struct ContentView: View {
                 SlideMenuView(
                     isOpen: $isMenuOpen,
                     showAbout: $showAboutSheet,
-                    showSettings: $showSettingsSheet
+                    showSettings: $showSettingsSheet,
+                    showStyleEditor: $showStyleEditorSheet
                 )
+                .environmentObject(appStyle)
             }
         }
         .sheet(isPresented: $showAboutSheet) {
@@ -193,6 +213,15 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showSettingsSheet) {
             SimpleSettingsView(settings: userSettings, isDarkMode: $isDarkMode)
+        }
+        .sheet(isPresented: $showStyleEditorSheet) {
+            EnhancedStyleEditorView(appStyle: appStyle)
+                .frame(minWidth: 600, idealWidth: 700, maxWidth: .infinity,
+                       minHeight: 900, idealHeight: 1000, maxHeight: .infinity)
+                #if os(iOS) || os(tvOS)
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+                #endif
         }
         .onAppear {
             // Try to load saved game
@@ -252,9 +281,10 @@ struct ContentView: View {
     var winOverlay: some View {
         VStack(spacing: 12) {
             Text("You Win!")
-                .font(.title)
+                .font(.system(size: appStyle.titleFontSize,
+                       design: appStyle.fontFamily == "System" ? .default : .monospaced))
                 .fontWeight(.bold)
-                .foregroundColor(isDarkMode ? Color(red: 76/255, green: 201/255, blue: 240/255) : Color(red: 0/255, green: 66/255, blue: 170/255))
+                .foregroundColor(isDarkMode ? appStyle.darkText : appStyle.primaryColor)
             
             Text(game.solution)
                 .font(.headline)
@@ -313,7 +343,7 @@ struct ContentView: View {
                     .font(.headline)
                     .padding(.horizontal, 24)
                     .padding(.vertical, 12)
-                    .background(isDarkMode ? Color(red: 76/255, green: 201/255, blue: 240/255) : Color(red: 0/255, green: 66/255, blue: 170/255))
+                    .background(isDarkMode ? appStyle.darkText : appStyle.primaryColor)
                     .foregroundColor(.white)
                     .cornerRadius(12)
             }
@@ -349,7 +379,8 @@ struct ContentView: View {
     var loseOverlay: some View {
         VStack(spacing: 12) {
             Text("Game Over")
-                .font(.title)
+                .font(.system(size: appStyle.titleFontSize,
+                       design: appStyle.fontFamily == "System" ? .default : .monospaced))
                 .fontWeight(.bold)
                 .foregroundColor(.red)
             

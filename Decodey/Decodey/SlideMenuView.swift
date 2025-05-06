@@ -4,6 +4,8 @@ struct SlideMenuView: View {
     @Binding var isOpen: Bool
     @Binding var showAbout: Bool
     @Binding var showSettings: Bool
+    @Binding var showStyleEditor: Bool
+    @EnvironmentObject var appStyle: AppStyle
     @Environment(\.colorScheme) var colorScheme
     
     // Colors based on theme
@@ -56,59 +58,97 @@ struct SlideMenuView: View {
                     .padding(.bottom, 20)
                     
                     // Menu items
-                    VStack(spacing: 0) {
-                        // Settings button
-                        Button(action: {
-                            showSettings = true
-                            withAnimation(.easeOut(duration: 0.3)) {
-                                isOpen = false
-                            }
-                        }) {
-                            HStack {
-                                Image(systemName: "gearshape.fill")
-                                    .frame(width: 24, height: 24)
-                                
-                                Text("Settings")
-                                    .font(.headline)
-                                
-                                Spacer()
-                                
-                                Image(systemName: "chevron.right")
-                                    .font(.caption)
-                                    .opacity(0.5)
-                            }
-                            .padding()
-                            .contentShape(Rectangle())
+                    ScrollView {
+                        VStack(spacing: 0) {
+                            // Play section
+                            menuHeader("Play")
+                            
+                            menuButton(
+                                title: "New Game",
+                                icon: "play.fill",
+                                action: {
+                                    // Start a new game
+                                    withAnimation {
+                                        isOpen = false
+                                    }
+                                }
+                            )
+                            
+                            Divider()
+                                .padding(.horizontal)
+                            
+                            // Settings section
+                            menuHeader("Settings")
+                            
+                            menuButton(
+                                title: "Game Settings",
+                                icon: "gearshape.fill",
+                                action: {
+                                    showSettings = true
+                                    withAnimation(.easeOut(duration: 0.3)) {
+                                        isOpen = false
+                                    }
+                                }
+                            )
+                            
+                            menuButton(
+                                title: "Style Editor",
+                                icon: "paintpalette.fill",
+                                action: {
+                                    showStyleEditor = true
+                                    withAnimation(.easeOut(duration: 0.3)) {
+                                        isOpen = false
+                                    }
+                                }
+                            )
+                            
+                            Divider()
+                                .padding(.horizontal)
+                            
+                            // Info section
+                            menuHeader("Info")
+                            
+                            menuButton(
+                                title: "Statistics",
+                                icon: "chart.bar.fill",
+                                action: {
+                                    // Open statistics
+                                    withAnimation {
+                                        isOpen = false
+                                    }
+                                }
+                            )
+                            
+                            menuButton(
+                                title: "About",
+                                icon: "info.circle.fill",
+                                action: {
+                                    showAbout = true
+                                    withAnimation(.easeOut(duration: 0.3)) {
+                                        isOpen = false
+                                    }
+                                }
+                            )
+                            
+                            #if DEBUG
+                            // Debug section - only shown in debug builds
+                            Divider()
+                                .padding(.horizontal)
+                            
+                            menuHeader("Developer")
+                            
+                            menuButton(
+                                title: "Quote Manager",
+                                icon: "doc.text.fill",
+                                action: {
+                                    // Open quote manager
+                                    withAnimation {
+                                        isOpen = false
+                                    }
+                                }
+                            )
+                            #endif
                         }
-                        .buttonStyle(PlainButtonStyle())
-                        
-                        Divider()
-                            .padding(.horizontal)
-                        
-                        // About button
-                        Button(action: {
-                            showAbout = true
-                            withAnimation(.easeOut(duration: 0.3)) {
-                                isOpen = false
-                            }
-                        }) {
-                            HStack {
-                                Image(systemName: "info.circle.fill")
-                                    .frame(width: 24, height: 24)
-                                
-                                Text("About")
-                                    .font(.headline)
-                                
-                                Spacer()
-                                
-                                Image(systemName: "chevron.right")
-                                    .font(.caption)
-                                    .opacity(0.5)
-                            }
-                            .padding()
-                            .contentShape(Rectangle())
-                        }
-                        .buttonStyle(PlainButtonStyle())
                     }
                     
                     Spacer()
@@ -130,6 +170,43 @@ struct SlideMenuView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .edgesIgnoringSafeArea(.all)
+        .sheet(isPresented: $showStyleEditor) {
+            EnhancedStyleEditorView(appStyle: appStyle)
+        }
+    }
+    
+    // Helper for section headers
+    private func menuHeader(_ title: String) -> some View {
+        Text(title.uppercased())
+            .font(.caption)
+            .fontWeight(.semibold)
+            .foregroundColor(textColor.opacity(0.6))
+            .padding(.horizontal)
+            .padding(.top, 12)
+            .padding(.bottom, 8)
+    }
+    
+    // Helper for menu buttons
+    private func menuButton(title: String, icon: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack {
+                Image(systemName: icon)
+                    .frame(width: 24, height: 24)
+                
+                Text(title)
+                    .font(.headline)
+                
+                Spacer()
+                
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .opacity(0.5)
+            }
+            .padding()
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(PlainButtonStyle())
+        .foregroundColor(textColor)
     }
 }
 
@@ -138,14 +215,10 @@ struct SlideMenuView_Previews: PreviewProvider {
         SlideMenuView(
             isOpen: .constant(true),
             showAbout: .constant(false),
-            showSettings: .constant(false)
+            showSettings: .constant(false),
+            showStyleEditor: .constant(false)
         )
+        .environmentObject(AppStyle())
         .preferredColorScheme(.dark)
     }
-}//
-//  SlideMenuView.swift
-//  Decodey
-//
-//  Created by Daniel Horsley on 06/05/2025.
-//
-
+}
