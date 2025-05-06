@@ -10,6 +10,9 @@ struct GameDashboardView: View {
     let primaryColor: Color
     let darkText: Color
     
+    // Text helpers setting
+    let showTextHelpers: Bool
+    
     // Hint animation
     @State private var isHintInProgress = false
     
@@ -50,10 +53,13 @@ struct GameDashboardView: View {
     
     private var encryptedLetterGrid: some View {
         VStack(alignment: .leading, spacing: appStyle.letterSpacing) {
-            Text("Select a letter to decode:")
-                .font(.system(size: appStyle.captionFontSize))
-                .foregroundColor(isDarkMode ? .white : .black)
-                .padding(.bottom, 4)
+            // Only show helper text if enabled
+            if showTextHelpers {
+                Text("Select a letter to decode:")
+                    .font(.system(size: appStyle.captionFontSize))
+                    .foregroundColor(isDarkMode ? .white : .black)
+                    .padding(.bottom, 4)
+            }
             
             // Dynamic columns based on available letters
             let columns = Array(repeating: GridItem(.flexible(), spacing: appStyle.letterSpacing / 2), count: 5)
@@ -81,10 +87,13 @@ struct GameDashboardView: View {
     
     private var guessLetterGrid: some View {
         VStack(alignment: .leading, spacing: appStyle.letterSpacing) {
-            Text("Guess with:")
-                .font(.system(size: appStyle.captionFontSize))
-                .foregroundColor(isDarkMode ? .white : .black)
-                .padding(.bottom, 4)
+            // Only show helper text if enabled
+            if showTextHelpers {
+                Text("Guess with:")
+                    .font(.system(size: appStyle.captionFontSize))
+                    .foregroundColor(isDarkMode ? .white : .black)
+                    .padding(.bottom, 4)
+            }
             
             // Get unique letters from the solution
             let uniqueLetters = Array(Set(game.solution.filter { $0.isLetter })).sorted()
@@ -151,10 +160,13 @@ struct GameDashboardView: View {
                         .foregroundColor(isDarkMode ? darkText : primaryColor)
                 }
                 
-                Text("HINT TOKENS")
-                    .font(.system(size: appStyle.captionFontSize))
-                    .foregroundColor(isDarkMode ? .white : .black)
-                    .opacity(0.7)
+                // Only show hint tokens text if text helpers are enabled
+                if showTextHelpers {
+                    Text("HINT TOKENS")
+                        .font(.system(size: appStyle.captionFontSize))
+                        .foregroundColor(isDarkMode ? .white : .black)
+                        .opacity(0.7)
+                }
             }
             .frame(width: 80, height: 60)
             .background(
@@ -191,7 +203,8 @@ struct GameDashboardView_Previews: PreviewProvider {
             showLoseMessage: .constant(false),
             isDarkMode: .constant(true),
             primaryColor: Color(red: 0/255, green: 66/255, blue: 170/255),
-            darkText: Color(red: 76/255, green: 201/255, blue: 240/255)
+            darkText: Color(red: 76/255, green: 201/255, blue: 240/255),
+            showTextHelpers: true
         )
         .environmentObject(AppStyle())
         .previewLayout(.sizeThatFits)
