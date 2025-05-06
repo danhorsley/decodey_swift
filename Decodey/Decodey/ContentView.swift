@@ -78,72 +78,49 @@ struct ContentView: View {
                 }
                 .padding(.top)
                 
-                // Display encrypted and current text - always stacked vertically
-                VStack(spacing: 12) {
-                    // First text area (encrypted)
-                    ZStack(alignment: .topLeading) {
-                        // Background
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(isDarkMode ? Color(white: 0.15) : Color(white: 0.95))
-                            .frame(maxWidth: .infinity)
-                            
-                        // Text content
-                        VStack(alignment: .leading) {
-                            // Only show helper text if enabled
-                            if showTextHelpers {
-                                Text("Encrypted:")
-                                    .font(.system(size: 12))
-                                    .foregroundColor(.gray)
-                                    .padding(.top, 8)
-                                    .padding(.leading, 8)
-                            }
-                            
-                            Text(game.encrypted)
-                                .font(.system(size: 16, design: .monospaced))
+                // Display encrypted and current text
+                VStack(spacing: 8) {
+                    // Encrypted text with monospaced font
+                    VStack(alignment: .leading, spacing: 2) {
+                        if showTextHelpers {
+                            Text("Encrypted:")
+                                .font(.system(size: 12))
                                 .foregroundColor(.gray)
-                                .padding(8)
                         }
+                        
+                        Text(game.encrypted)
+                            .font(.system(size: 16, design: .monospaced))
+                            .tracking(2) // Add letter spacing
+                            .lineSpacing(4) // Add line spacing
+                            .foregroundColor(.gray)
                     }
-                    .frame(maxWidth: .infinity)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 16)
                     
-                    // Second text area (solution)
-                    ZStack(alignment: .topLeading) {
-                        // Background
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(isDarkMode ? Color(white: 0.15) : Color(white: 0.95))
-                            .frame(maxWidth: .infinity)
-                            
-                        // Text content
-                        VStack(alignment: .leading) {
-                            // Only show helper text if enabled
-                            if showTextHelpers {
-                                Text("Your solution:")
-                                    .font(.system(size: 12))
-                                    .foregroundColor(isDarkMode ? Color(red: 76/255, green: 201/255, blue: 240/255) : Color(red: 0/255, green: 66/255, blue: 170/255))
-                                    .padding(.top, 8)
-                                    .padding(.leading, 8)
-                            }
-                            
-                            Text(game.currentDisplay)
-                                .font(.system(size: 16, design: .monospaced))
+                    // Solution with blocks
+                    VStack(alignment: .leading, spacing: 2) {
+                        if showTextHelpers {
+                            Text("Your solution:")
+                                .font(.system(size: 12))
                                 .foregroundColor(isDarkMode ? Color(red: 76/255, green: 201/255, blue: 240/255) : Color(red: 0/255, green: 66/255, blue: 170/255))
-                                .padding(8)
                         }
+                        
+                        Text(game.currentDisplay)
+                            .font(.system(size: 16, design: .monospaced))
+                            .tracking(2) // Match letter spacing with encrypted text
+                            .lineSpacing(4) // Match line spacing with encrypted text
+                            .foregroundColor(isDarkMode ? Color(red: 76/255, green: 201/255, blue: 240/255) : Color(red: 0/255, green: 66/255, blue: 170/255))
                     }
-                    .frame(maxWidth: .infinity)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 16)
                 }
-                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
                 
-                // Game status
-                HStack {
-                    Text("Mistakes: \(game.mistakes)/\(game.maxMistakes)")
-                        .font(.headline)
-                        .foregroundColor(isDarkMode ? .white : .black)
-                    
-                    Spacer()
-                    
-                    // Game reset button
-                    if game.hasWon || game.hasLost {
+                // Game reset button - only show if game is completed
+                if game.hasWon || game.hasLost {
+                    HStack {
+                        Spacer()
+                        
                         Button(action: {
                             resetGame()
                         }) {
@@ -156,20 +133,22 @@ struct ContentView: View {
                                 .cornerRadius(8)
                         }
                     }
+                    .padding(.horizontal, 16)
                 }
-                .padding(.horizontal, 16)
                 
-                // Game Dashboard
-                GameDashboardView(
+                // Game grids with hint button
+                GameGridsView(
                     game: $game,
-                    showWinMessage: $showWinMessage,
-                    showLoseMessage: $showLoseMessage,
                     isDarkMode: $isDarkMode,
-                    primaryColor: Color(red: 0/255, green: 66/255, blue: 170/255),
-                    darkText: Color(red: 76/255, green: 201/255, blue: 240/255),
-                    showTextHelpers: showTextHelpers
+                    showTextHelpers: showTextHelpers,
+                    onWin: {
+                        showWinMessage = true
+                    },
+                    onLose: {
+                        showLoseMessage = true
+                    }
                 )
-                .padding(.top, 8)
+                .padding(.top, 4)
                 
                 Spacer()
             }
