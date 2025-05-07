@@ -1,37 +1,5 @@
 import SwiftUI
 
-// A simple settings model to store user preferences
-class UserSettings: ObservableObject {
-    @Published var isDarkMode: Bool {
-        didSet {
-            UserDefaults.standard.set(isDarkMode, forKey: "isDarkMode")
-        }
-    }
-    
-    @Published var showTextHelpers: Bool {
-        didSet {
-            UserDefaults.standard.set(showTextHelpers, forKey: "showTextHelpers")
-        }
-    }
-    
-    init() {
-        // Load saved settings or use defaults
-        self.isDarkMode = UserDefaults.standard.bool(forKey: "isDarkMode")
-        self.showTextHelpers = UserDefaults.standard.bool(forKey: "showTextHelpers")
-        
-        // If this is the first launch, set default values
-        if UserDefaults.standard.object(forKey: "isDarkMode") == nil {
-            self.isDarkMode = true // Default to dark mode
-            UserDefaults.standard.set(true, forKey: "isDarkMode")
-        }
-        
-        if UserDefaults.standard.object(forKey: "showTextHelpers") == nil {
-            self.showTextHelpers = true // Default to showing text helpers
-            UserDefaults.standard.set(true, forKey: "showTextHelpers")
-        }
-    }
-}
-
 struct SimpleSettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var settings: UserSettings
@@ -90,14 +58,5 @@ struct SimpleSettingsView: View {
         // Save the settings to the model and user defaults
         settings.isDarkMode = localIsDarkMode
         settings.showTextHelpers = localShowHelpers
-    }
-}
-
-struct SimpleSettingsView_Previews: PreviewProvider {
-    static var previews: some View {
-        SimpleSettingsView(
-            settings: UserSettings(),
-            isDarkMode: .constant(true)
-        )
     }
 }

@@ -5,7 +5,7 @@ struct SlideMenuView: View {
     @Binding var showAbout: Bool
     @Binding var showSettings: Bool
     @Binding var showStyleEditor: Bool
-    @EnvironmentObject var appStyle: AppStyle
+    
     @Environment(\.colorScheme) var colorScheme
     
     // Colors based on theme
@@ -91,17 +91,6 @@ struct SlideMenuView: View {
                                 }
                             )
                             
-                            menuButton(
-                                title: "Style Editor",
-                                icon: "paintpalette.fill",
-                                action: {
-                                    showStyleEditor = true
-                                    withAnimation(.easeOut(duration: 0.3)) {
-                                        isOpen = false
-                                    }
-                                }
-                            )
-                            
                             Divider()
                                 .padding(.horizontal)
                             
@@ -170,9 +159,6 @@ struct SlideMenuView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .edgesIgnoringSafeArea(.all)
-        .sheet(isPresented: $showStyleEditor) {
-            EnhancedStyleEditorView(appStyle: appStyle)
-        }
     }
     
     // Helper for section headers
@@ -218,7 +204,6 @@ struct SlideMenuView_Previews: PreviewProvider {
             showSettings: .constant(false),
             showStyleEditor: .constant(false)
         )
-        .environmentObject(AppStyle())
         .preferredColorScheme(.dark)
     }
 }

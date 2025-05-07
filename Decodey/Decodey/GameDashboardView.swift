@@ -4,10 +4,9 @@ struct GameDashboardView: View {
     @Binding var game: Game
     @Binding var showWinMessage: Bool
     @Binding var showLoseMessage: Bool
-    @Binding var isDarkMode: Bool
     
-    // Style references
-    @EnvironmentObject var appStyle: AppStyle
+    // Use environment values instead of AppStyle
+    @Environment(\.colorScheme) var colorScheme
     
     // Text helpers setting
     let showTextHelpers: Bool
@@ -23,10 +22,10 @@ struct GameDashboardView: View {
                 if !isLandscape {
                     // Portrait mode layout - vertical stacking
                     encryptedLetterGrid
-                        .padding(.bottom, appStyle.letterSpacing * 2)
+                        .padding(.bottom, 8)
                     
                     hintButton
-                        .padding(.vertical, appStyle.hintButtonTopPadding)
+                        .padding(.vertical, 10)
                     
                     guessLetterGrid
                 } else {
@@ -34,37 +33,37 @@ struct GameDashboardView: View {
                     HStack(alignment: .center, spacing: 0) {
                         encryptedLetterGrid
                             .frame(maxWidth: .infinity)
-                            .padding(.leading, appStyle.gridMargin)
+                            .padding(.leading, 20)
                         
                         hintButton
-                            .padding(.horizontal, appStyle.contentPadding)
-                            .padding(.top, appStyle.hintButtonTopPadding)
-                            .padding(.bottom, appStyle.hintButtonBottomPadding)
+                            .padding(.horizontal, 16)
+                            .padding(.top, 10)
+                            .padding(.bottom, 10)
                         
                         guessLetterGrid
                             .frame(maxWidth: .infinity)
-                            .padding(.trailing, appStyle.gridMargin)
+                            .padding(.trailing, 20)
                     }
                 }
             }
-            .padding(.horizontal, appStyle.letterSpacing * 2)
+            .padding(.horizontal, 8)
         }
     }
     
     private var encryptedLetterGrid: some View {
-        VStack(alignment: .leading, spacing: appStyle.letterSpacing) {
+        VStack(alignment: .leading, spacing: 8) {
             // Only show helper text if enabled
             if showTextHelpers {
                 Text("Select a letter to decode:")
-                    .font(.system(size: appStyle.captionFontSize))
-                    .foregroundColor(isDarkMode ? .white : .black)
+                    .font(.system(size: 12))
+                    .foregroundColor(colorScheme == .dark ? .white : .black)
                     .padding(.bottom, 4)
             }
             
             // Dynamic columns based on available letters
-            let columns = Array(repeating: GridItem(.flexible(), spacing: appStyle.letterSpacing / 2), count: 5)
+            let columns = Array(repeating: GridItem(.flexible(), spacing: 4), count: 5)
             
-            LazyVGrid(columns: columns, spacing: appStyle.letterSpacing) {
+            LazyVGrid(columns: columns, spacing: 4) {
                 ForEach(game.uniqueEncryptedLetters(), id: \.self) { letter in
                     EncryptedLetterCell(
                         letter: letter,
@@ -75,9 +74,7 @@ struct GameDashboardView: View {
                             withAnimation {
                                 game.selectLetter(letter)
                             }
-                        },
-                        isDarkMode: isDarkMode,
-                        appStyle: appStyle
+                        }
                     )
                 }
             }
@@ -85,12 +82,12 @@ struct GameDashboardView: View {
     }
     
     private var guessLetterGrid: some View {
-        VStack(alignment: .leading, spacing: appStyle.letterSpacing) {
+        VStack(alignment: .leading, spacing: 8) {
             // Only show helper text if enabled
             if showTextHelpers {
                 Text("Guess with:")
-                    .font(.system(size: appStyle.captionFontSize))
-                    .foregroundColor(isDarkMode ? .white : .black)
+                    .font(.system(size: 12))
+                    .foregroundColor(colorScheme == .dark ? .white : .black)
                     .padding(.bottom, 4)
             }
             
@@ -99,9 +96,9 @@ struct GameDashboardView: View {
             
             // Calculate optimal number of columns based on available letters
             let columnCount = min(7, max(5, uniqueLetters.count / 3))
-            let columns = Array(repeating: GridItem(.flexible(), spacing: appStyle.letterSpacing / 2), count: columnCount)
+            let columns = Array(repeating: GridItem(.flexible(), spacing: 4), count: columnCount)
             
-            LazyVGrid(columns: columns, spacing: appStyle.letterSpacing) {
+            LazyVGrid(columns: columns, spacing: 4) {
                 ForEach(uniqueLetters, id: \.self) { letter in
                     GuessLetterCell(
                         letter: letter,
@@ -119,9 +116,7 @@ struct GameDashboardView: View {
                                     }
                                 }
                             }
-                        },
-                        isDarkMode: isDarkMode,
-                        appStyle: appStyle
+                        }
                     )
                 }
             }
@@ -129,82 +124,44 @@ struct GameDashboardView: View {
     }
     
     private var hintButton: some View {
-        Button(action: {
-            // Only perform action if not already in progress
-            guard !isHintInProgress else { return }
-            
-            // Process hint immediately
-            let _ = game.getHint()
-            
-            // Check game status after hint
-            if game.hasWon {
-                showWinMessage = true
-            } else if game.hasLost {
-                showLoseMessage = true
-            }
-        }) {
-            VStack {
-                // Show spinner when hint is in progress
-                if isHintInProgress {
-                    ProgressView()
-                        .scaleEffect(1.2)
-                        .progressViewStyle(CircularProgressViewStyle(tint: isDarkMode ? appStyle.darkText : appStyle.primaryColor))
-                        .padding(8)
-                } else {
-                    // Show remaining hints
-                    Text("\(game.maxMistakes - game.mistakes)")
-                        .font(.system(.title, design: appStyle.fontFamily == "System" ? .default : .monospaced))
-                        .fontWeight(.bold)
-                        .foregroundColor(isDarkMode ? appStyle.darkText : appStyle.primaryColor)
-                }
+        HintButtonView(
+            remainingHints: game.maxMistakes - game.mistakes,
+            isLoading: isHintInProgress,
+            isDarkMode: colorScheme == .dark,
+            onHintRequested: {
+                // Only perform action if not already in progress
+                guard !isHintInProgress else { return }
                 
-                // Only show hint tokens text if text helpers are enabled
-                if showTextHelpers {
-                    Text("HINT TOKENS")
-                        .font(.system(size: appStyle.captionFontSize))
-                        .foregroundColor(isDarkMode ? .white : .black)
-                        .opacity(0.7)
+                // Set loading state
+                isHintInProgress = true
+                
+                // Process hint after a short delay
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    let _ = game.getHint()
+                    
+                    // Reset loading state
+                    isHintInProgress = false
+                    
+                    // Check game status after hint
+                    if game.hasWon {
+                        showWinMessage = true
+                    } else if game.hasLost {
+                        showLoseMessage = true
+                    }
                 }
             }
-            .frame(width: 80, height: 60)
-            .background(
-                RoundedRectangle(cornerRadius: 8)
-                    .strokeBorder(lineWidth: 2)
-                    .foregroundColor(statusColor)
-            )
-            .background(isDarkMode ? Color(white: 0.15) : Color(white: 0.95))
-            .cornerRadius(8)
-        }
-        .disabled(isHintInProgress || game.hasWon || game.hasLost)
-    }
-    
-    // Dynamic color based on remaining mistakes
-    private var statusColor: Color {
-        let remainingMistakes = game.maxMistakes - game.mistakes
-        
-        if remainingMistakes <= 1 {
-            return .red
-        } else if remainingMistakes <= game.maxMistakes / 2 {
-            return .orange
-        } else {
-            return isDarkMode ? appStyle.darkText : appStyle.primaryColor
-        }
+        )
     }
 }
 
-// Preview provider for SwiftUI canvas
 struct GameDashboardView_Previews: PreviewProvider {
     static var previews: some View {
-        let appStyle = AppStyle()
-        
         GameDashboardView(
             game: .constant(Game()),
             showWinMessage: .constant(false),
             showLoseMessage: .constant(false),
-            isDarkMode: .constant(true),
             showTextHelpers: true
         )
-        .environmentObject(appStyle)
         .previewLayout(.sizeThatFits)
         .padding()
         .background(Color(red: 34/255, green: 34/255, blue: 34/255))

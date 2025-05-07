@@ -8,16 +8,15 @@ struct WinOverlayView: View {
     let timeTaken: Int
     let score: Int
     let isDarkMode: Bool
-    let appStyle: AppStyle
     let onPlayAgain: () -> Void
+    
+    @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
         VStack(spacing: 12) {
             Text("You Win!")
-                .font(.system(size: appStyle.titleFontSize,
-                       design: appStyle.fontFamily == "System" ? .default : .monospaced))
-                .fontWeight(.bold)
-                .foregroundColor(isDarkMode ? appStyle.darkText : appStyle.primaryColor)
+                .font(.largeTitle.bold())
+                .foregroundColor(.green)
             
             Text(solution)
                 .font(.headline)
@@ -72,10 +71,11 @@ struct WinOverlayView: View {
                     .font(.headline)
                     .padding(.horizontal, 24)
                     .padding(.vertical, 12)
-                    .background(isDarkMode ? appStyle.darkText : appStyle.primaryColor)
+                    .background(Color.green)
                     .foregroundColor(.white)
                     .cornerRadius(12)
             }
+            .buttonStyle(BorderlessButtonStyle())
         }
         .padding(40)
         .background(Color.black.opacity(0.85))
@@ -97,15 +97,14 @@ struct LoseOverlayView: View {
     let maxMistakes: Int
     let timeTaken: Int
     let isDarkMode: Bool
-    let appStyle: AppStyle
     let onTryAgain: () -> Void
+    
+    @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
         VStack(spacing: 12) {
             Text("Game Over")
-                .font(.system(size: appStyle.titleFontSize,
-                       design: appStyle.fontFamily == "System" ? .default : .monospaced))
-                .fontWeight(.bold)
+                .font(.largeTitle.bold())
                 .foregroundColor(.red)
             
             Text("The solution was:")
@@ -154,6 +153,7 @@ struct LoseOverlayView: View {
                     .foregroundColor(.white)
                     .cornerRadius(12)
             }
+            .buttonStyle(BorderlessButtonStyle())
         }
         .padding(40)
         .background(Color.black.opacity(0.85))
@@ -179,10 +179,9 @@ struct WinOverlayView_Previews: PreviewProvider {
             timeTaken: 125,
             score: 745,
             isDarkMode: true,
-            appStyle: AppStyle(),
             onPlayAgain: {}
         )
-        .previewLayout(.sizeThatFits)
+        .previewLayout(.fixed(width: 350, height: 500))
         .padding()
         .background(Color.gray)
     }
@@ -196,17 +195,10 @@ struct LoseOverlayView_Previews: PreviewProvider {
             maxMistakes: 7,
             timeTaken: 95,
             isDarkMode: true,
-            appStyle: AppStyle(),
             onTryAgain: {}
         )
-        .previewLayout(.sizeThatFits)
+        .previewLayout(.fixed(width: 350, height: 500))
         .padding()
         .background(Color.gray)
     }
-}//
-//  GameOverlayViews.swift
-//  Decodey
-//
-//  Created by Daniel Horsley on 07/05/2025.
-//
-
+}

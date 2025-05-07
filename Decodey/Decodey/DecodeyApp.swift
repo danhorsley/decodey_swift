@@ -2,13 +2,14 @@ import SwiftUI
 
 @main
 struct DecodeyApp: App {
-    // Create a shared AppStyle instance that will be available throughout the app
-    @StateObject private var appStyle = AppStyle.load() ?? AppStyle()
+    // Use standard system environment values instead of custom styles
+    @StateObject private var userSettings = UserSettings()
     
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environmentObject(appStyle)
+                .preferredColorScheme(userSettings.isDarkMode ? .dark : .light)
+                .accentColor(.blue) // System accent color
         }
     }
 }
