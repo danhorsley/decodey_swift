@@ -12,16 +12,32 @@ class AppStyle: ObservableObject {
     @Published var darkBackground: Color = Color(red: 34/255, green: 34/255, blue: 34/255)
     @Published var darkText: Color = Color(red: 76/255, green: 201/255, blue: 240/255)
     
+    // MARK: - Letter Cell Colors
+    @Published var letterCellNormalColor: Color = Color(red: 0/255, green: 45/255, blue: 100/255)
+    @Published var letterCellSelectedColor: Color = Color(red: 76/255, green: 201/255, blue: 240/255)
+    @Published var letterCellGuessedColor: Color = Color(white: 0.2)
+    
     // MARK: - Sizing
     @Published var letterCellSize: CGFloat = 36
     @Published var guessLetterCellSize: CGFloat = 32
     @Published var letterSpacing: CGFloat = 4
+    @Published var letterCellPadding: CGFloat = 0 // New: Letter cell padding
     @Published var contentPadding: CGFloat = 16
+    @Published var gridMargin: CGFloat = 20 // New: Left/right margin of grids
+    
+    // MARK: - Vertical Positioning
+    @Published var hintButtonTopPadding: CGFloat = 10 // New: Space above hint button
+    @Published var hintButtonBottomPadding: CGFloat = 10 // New: Space below hint button
+    
+    // MARK: - Text Spacing
+    @Published var textDisplaySpacing: CGFloat = 12 // New: Gap between encrypted and display text
+    @Published var textToGridSpacing: CGFloat = 20 // New: Gap between text and grids
     
     // MARK: - Font Settings
     @Published var fontFamily: String = "System"
     @Published var titleFontSize: CGFloat = 28
     @Published var bodyFontSize: CGFloat = 16
+    @Published var letterCellFontSize: CGFloat = 18 // New: Letter cell font size
     @Published var captionFontSize: CGFloat = 12
     
     // MARK: - Text Layout
@@ -34,6 +50,9 @@ class AppStyle: ObservableObject {
     // MARK: - Device Specific Adjustments
     @Published var smallDeviceAdjustment: CGFloat = 0.85
     @Published var largeDeviceAdjustment: CGFloat = 1.15
+    
+    // MARK: - Alignment
+    @Published var textAlignment: TextAlignment = .center // Always center for text blocks
     
     // MARK: - Preset themes
     static let defaultLight = AppStyle(isDark: false)
@@ -54,16 +73,32 @@ class AppStyle: ObservableObject {
             "darkBackground": darkBackground.toHex() ?? "#222222",
             "darkText": darkText.toHex() ?? "#4cc9f0",
             
+            // Letter Cell Colors
+            "letterCellNormalColor": letterCellNormalColor.toHex() ?? "#002D64",
+            "letterCellSelectedColor": letterCellSelectedColor.toHex() ?? "#4cc9f0",
+            "letterCellGuessedColor": letterCellGuessedColor.toHex() ?? "#333333",
+            
             // Sizing
             "letterCellSize": letterCellSize,
             "guessLetterCellSize": guessLetterCellSize,
             "letterSpacing": letterSpacing,
+            "letterCellPadding": letterCellPadding,
             "contentPadding": contentPadding,
+            "gridMargin": gridMargin,
+            
+            // Vertical Positioning
+            "hintButtonTopPadding": hintButtonTopPadding,
+            "hintButtonBottomPadding": hintButtonBottomPadding,
+            
+            // Text Spacing
+            "textDisplaySpacing": textDisplaySpacing,
+            "textToGridSpacing": textToGridSpacing,
             
             // Font settings
             "fontFamily": fontFamily,
             "titleFontSize": titleFontSize,
             "bodyFontSize": bodyFontSize,
+            "letterCellFontSize": letterCellFontSize,
             "captionFontSize": captionFontSize,
             
             // Text layout
@@ -103,6 +138,17 @@ class AppStyle: ObservableObject {
             appStyle.darkText = Color(hex: hexColor) ?? appStyle.darkText
         }
         
+        // Load letter cell colors
+        if let hexColor = style["letterCellNormalColor"] as? String {
+            appStyle.letterCellNormalColor = Color(hex: hexColor) ?? appStyle.letterCellNormalColor
+        }
+        if let hexColor = style["letterCellSelectedColor"] as? String {
+            appStyle.letterCellSelectedColor = Color(hex: hexColor) ?? appStyle.letterCellSelectedColor
+        }
+        if let hexColor = style["letterCellGuessedColor"] as? String {
+            appStyle.letterCellGuessedColor = Color(hex: hexColor) ?? appStyle.letterCellGuessedColor
+        }
+        
         // Load sizes
         if let size = style["letterCellSize"] as? CGFloat {
             appStyle.letterCellSize = size
@@ -113,8 +159,30 @@ class AppStyle: ObservableObject {
         if let spacing = style["letterSpacing"] as? CGFloat {
             appStyle.letterSpacing = spacing
         }
+        if let padding = style["letterCellPadding"] as? CGFloat {
+            appStyle.letterCellPadding = padding
+        }
         if let padding = style["contentPadding"] as? CGFloat {
             appStyle.contentPadding = padding
+        }
+        if let margin = style["gridMargin"] as? CGFloat {
+            appStyle.gridMargin = margin
+        }
+        
+        // Load vertical positioning
+        if let padding = style["hintButtonTopPadding"] as? CGFloat {
+            appStyle.hintButtonTopPadding = padding
+        }
+        if let padding = style["hintButtonBottomPadding"] as? CGFloat {
+            appStyle.hintButtonBottomPadding = padding
+        }
+        
+        // Load text spacing
+        if let spacing = style["textDisplaySpacing"] as? CGFloat {
+            appStyle.textDisplaySpacing = spacing
+        }
+        if let spacing = style["textToGridSpacing"] as? CGFloat {
+            appStyle.textToGridSpacing = spacing
         }
         
         // Load font settings
@@ -126,6 +194,9 @@ class AppStyle: ObservableObject {
         }
         if let size = style["bodyFontSize"] as? CGFloat {
             appStyle.bodyFontSize = size
+        }
+        if let size = style["letterCellFontSize"] as? CGFloat {
+            appStyle.letterCellFontSize = size
         }
         if let size = style["captionFontSize"] as? CGFloat {
             appStyle.captionFontSize = size
@@ -163,13 +234,23 @@ class AppStyle: ObservableObject {
         self.primaryColor = defaultStyle.primaryColor
         self.darkBackground = defaultStyle.darkBackground
         self.darkText = defaultStyle.darkText
+        self.letterCellNormalColor = defaultStyle.letterCellNormalColor
+        self.letterCellSelectedColor = defaultStyle.letterCellSelectedColor
+        self.letterCellGuessedColor = defaultStyle.letterCellGuessedColor
         self.letterCellSize = defaultStyle.letterCellSize
         self.guessLetterCellSize = defaultStyle.guessLetterCellSize
         self.letterSpacing = defaultStyle.letterSpacing
+        self.letterCellPadding = defaultStyle.letterCellPadding
         self.contentPadding = defaultStyle.contentPadding
+        self.gridMargin = defaultStyle.gridMargin
+        self.hintButtonTopPadding = defaultStyle.hintButtonTopPadding
+        self.hintButtonBottomPadding = defaultStyle.hintButtonBottomPadding
+        self.textDisplaySpacing = defaultStyle.textDisplaySpacing
+        self.textToGridSpacing = defaultStyle.textToGridSpacing
         self.fontFamily = defaultStyle.fontFamily
         self.titleFontSize = defaultStyle.titleFontSize
         self.bodyFontSize = defaultStyle.bodyFontSize
+        self.letterCellFontSize = defaultStyle.letterCellFontSize
         self.captionFontSize = defaultStyle.captionFontSize
         self.textLineSpacing = defaultStyle.textLineSpacing
         self.textLetterSpacing = defaultStyle.textLetterSpacing
@@ -191,18 +272,37 @@ class AppStyle: ObservableObject {
         snapshot += "    static let darkBackground = Color(red: \(darkBackground.components.red)/255, green: \(darkBackground.components.green)/255, blue: \(darkBackground.components.blue)/255)\n"
         snapshot += "    static let darkText = Color(red: \(darkText.components.red)/255, green: \(darkText.components.green)/255, blue: \(darkText.components.blue)/255)\n\n"
         
+        // Letter Cell Colors
+        snapshot += "    // MARK: - Letter Cell Colors\n"
+        snapshot += "    static let letterCellNormalColor = Color(red: \(letterCellNormalColor.components.red)/255, green: \(letterCellNormalColor.components.green)/255, blue: \(letterCellNormalColor.components.blue)/255)\n"
+        snapshot += "    static let letterCellSelectedColor = Color(red: \(letterCellSelectedColor.components.red)/255, green: \(letterCellSelectedColor.components.green)/255, blue: \(letterCellSelectedColor.components.blue)/255)\n"
+        snapshot += "    static let letterCellGuessedColor = Color(red: \(letterCellGuessedColor.components.red)/255, green: \(letterCellGuessedColor.components.green)/255, blue: \(letterCellGuessedColor.components.blue)/255)\n\n"
+        
         // Sizing section
         snapshot += "    // MARK: - Sizing\n"
         snapshot += "    static let letterCellSize: CGFloat = \(letterCellSize)\n"
         snapshot += "    static let guessLetterCellSize: CGFloat = \(guessLetterCellSize)\n"
         snapshot += "    static let letterSpacing: CGFloat = \(letterSpacing)\n"
-        snapshot += "    static let contentPadding: CGFloat = \(contentPadding)\n\n"
+        snapshot += "    static let letterCellPadding: CGFloat = \(letterCellPadding)\n"
+        snapshot += "    static let contentPadding: CGFloat = \(contentPadding)\n"
+        snapshot += "    static let gridMargin: CGFloat = \(gridMargin)\n\n"
+        
+        // Vertical positioning
+        snapshot += "    // MARK: - Vertical Positioning\n"
+        snapshot += "    static let hintButtonTopPadding: CGFloat = \(hintButtonTopPadding)\n"
+        snapshot += "    static let hintButtonBottomPadding: CGFloat = \(hintButtonBottomPadding)\n\n"
+        
+        // Text spacing
+        snapshot += "    // MARK: - Text Spacing\n"
+        snapshot += "    static let textDisplaySpacing: CGFloat = \(textDisplaySpacing)\n"
+        snapshot += "    static let textToGridSpacing: CGFloat = \(textToGridSpacing)\n\n"
         
         // Font settings
         snapshot += "    // MARK: - Font Settings\n"
         snapshot += "    static let fontFamily = \"\(fontFamily)\"\n"
         snapshot += "    static let titleFontSize: CGFloat = \(titleFontSize)\n"
         snapshot += "    static let bodyFontSize: CGFloat = \(bodyFontSize)\n"
+        snapshot += "    static let letterCellFontSize: CGFloat = \(letterCellFontSize)\n"
         snapshot += "    static let captionFontSize: CGFloat = \(captionFontSize)\n\n"
         
         // Text layout
@@ -248,13 +348,6 @@ class AppStyle: ObservableObject {
     private func loadHardcodedStyleIfNeeded() {
         // This would contain the hardcoded style values that would be generated
         // from a snapshot file
-        
-        // For example:
-        // if !useDynamicStyling {
-        //     self.primaryColor = HardcodedStyle.primaryColor
-        //     self.darkBackground = HardcodedStyle.darkBackground
-        //     // etc.
-        // }
     }
 }
 
@@ -327,14 +420,15 @@ struct EnhancedStyleEditorView: View {
     @State private var showSnapshotSavedAlert = false
     @State private var saveSuccess = false
     
-    // Available font families
-    let availableFonts = ["System", "Courier", "Menlo", "SF Mono", "Helvetica Neue"]
+    // Available font families - Fixed to ensure they all work
+    let availableFonts = ["System", "Courier"]
     
     // To hold temporary values
     @State private var tempColor: Color = .blue
     
     enum ColorField {
         case primary, darkBackground, darkText
+        case letterCellNormal, letterCellSelected, letterCellGuessed
     }
     
     var body: some View {
@@ -343,9 +437,9 @@ struct EnhancedStyleEditorView: View {
                 // Top tabs
                 Picker("Style Category", selection: $selectedTab) {
                     Text("Colors").tag(0)
-                    Text("Sizing").tag(1)
-                    Text("Fonts").tag(2)
-                    Text("Layout").tag(3)
+                    Text("Cells").tag(1)
+                    Text("Layout").tag(2)
+                    Text("Fonts").tag(3)
                     Text("Advanced").tag(4)
                 }
                 .pickerStyle(SegmentedPickerStyle())
@@ -356,16 +450,16 @@ struct EnhancedStyleEditorView: View {
                     colorsTab
                         .tag(0)
                     
-                    // MARK: - Sizing Tab
-                    sizingTab
+                    // MARK: - Cell Styling Tab
+                    cellStylingTab
                         .tag(1)
-                    
-                    // MARK: - Fonts Tab
-                    fontsTab
-                        .tag(2)
                     
                     // MARK: - Layout Tab
                     layoutTab
+                        .tag(2)
+                    
+                    // MARK: - Fonts Tab
+                    fontsTab
                         .tag(3)
                     
                     // MARK: - Advanced Tab
@@ -383,7 +477,7 @@ struct EnhancedStyleEditorView: View {
                         .padding(.top)
                     
                     previewArea
-                        .frame(height: 200)
+                        .frame(height: 250)
                         .padding()
                         .background(Color.gray.opacity(0.1))
                         .cornerRadius(8)
@@ -423,7 +517,7 @@ struct EnhancedStyleEditorView: View {
                 }
                 .padding()
             }
-            .navigationTitle("Style Editor")
+            .navigationTitle("Enhanced Style Editor")
             .toolbar {
                 #if os(iOS) || os(tvOS)
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -518,9 +612,29 @@ struct EnhancedStyleEditorView: View {
         }
     }
     
-    // MARK: - Sizing Tab
-    var sizingTab: some View {
+    // MARK: - Cell Styling Tab
+    var cellStylingTab: some View {
         Form {
+            Section(header: Text("Letter Cell Colors")) {
+                colorRow(title: "Normal Cell", color: appStyle.letterCellNormalColor) {
+                    colorToEdit = .letterCellNormal
+                    tempColor = appStyle.letterCellNormalColor
+                    showColorPicker = true
+                }
+                
+                colorRow(title: "Selected Cell", color: appStyle.letterCellSelectedColor) {
+                    colorToEdit = .letterCellSelected
+                    tempColor = appStyle.letterCellSelectedColor
+                    showColorPicker = true
+                }
+                
+                colorRow(title: "Guessed Cell", color: appStyle.letterCellGuessedColor) {
+                    colorToEdit = .letterCellGuessed
+                    tempColor = appStyle.letterCellGuessedColor
+                    showColorPicker = true
+                }
+            }
+            
             Section(header: Text("Cell Sizing")) {
                 VStack(alignment: .leading) {
                     Text("Letter Cell Size: \(Int(appStyle.letterCellSize))")
@@ -531,30 +645,114 @@ struct EnhancedStyleEditorView: View {
                     Text("Guess Letter Cell Size: \(Int(appStyle.guessLetterCellSize))")
                     Slider(value: $appStyle.guessLetterCellSize, in: 20...48, step: 2)
                 }
-            }
-            
-            Section(header: Text("Spacing & Padding")) {
+                
+                VStack(alignment: .leading) {
+                    Text("Letter Cell Padding: \(Int(appStyle.letterCellPadding))")
+                    Slider(value: $appStyle.letterCellPadding, in: 0...10, step: 1)
+                }
+                
                 VStack(alignment: .leading) {
                     Text("Letter Spacing: \(Int(appStyle.letterSpacing))")
                     Slider(value: $appStyle.letterSpacing, in: 1...12, step: 1)
                 }
-                
+            }
+            
+            Section(header: Text("Cell Demonstration")) {
+                HStack(spacing: appStyle.letterSpacing) {
+                    // Normal state
+                    LetterCellPreview(
+                        letter: "A",
+                        state: .normal,
+                        isDarkMode: true,
+                        style: appStyle
+                    )
+                    
+                    // Selected state
+                    LetterCellPreview(
+                        letter: "B",
+                        state: .selected,
+                        isDarkMode: true,
+                        style: appStyle
+                    )
+                    
+                    // Guessed state
+                    LetterCellPreview(
+                        letter: "C",
+                        state: .guessed,
+                        isDarkMode: true,
+                        style: appStyle
+                    )
+                }
+                .padding()
+                .background(appStyle.darkBackground)
+                .cornerRadius(8)
+            }
+        }
+    }
+    
+    // MARK: - Layout Tab
+    var layoutTab: some View {
+        Form {
+            Section(header: Text("Spacing & Padding")) {
                 VStack(alignment: .leading) {
                     Text("Content Padding: \(Int(appStyle.contentPadding))")
                     Slider(value: $appStyle.contentPadding, in: 4...32, step: 2)
                 }
+                
+                VStack(alignment: .leading) {
+                    Text("Grid Margin: \(Int(appStyle.gridMargin))")
+                    Slider(value: $appStyle.gridMargin, in: 0...40, step: 2)
+                }
             }
             
-            Section(header: Text("Help"), footer: Text("Adjusting cell sizes can impact game playability. Larger sizes are better for touch targets but fit fewer letters on screen.")) {
-                Text("Recommended Sizes:")
-                
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Phone: 32-36px cells, 4px spacing")
-                    Text("Tablet: 36-42px cells, 6px spacing")
-                    Text("Desktop: 40-48px cells, 8px spacing")
+            Section(header: Text("Text Display Spacing")) {
+                VStack(alignment: .leading) {
+                    Text("Between Encrypted & Display: \(Int(appStyle.textDisplaySpacing))")
+                    Slider(value: $appStyle.textDisplaySpacing, in: 4...24, step: 2)
                 }
-                .font(.caption)
-                .foregroundColor(.secondary)
+                
+                VStack(alignment: .leading) {
+                    Text("Between Text & Grids: \(Int(appStyle.textToGridSpacing))")
+                    Slider(value: $appStyle.textToGridSpacing, in: 8...36, step: 2)
+                }
+            }
+            
+            Section(header: Text("Hint Button Position")) {
+                VStack(alignment: .leading) {
+                    Text("Space Above Hint Button: \(Int(appStyle.hintButtonTopPadding))")
+                    Slider(value: $appStyle.hintButtonTopPadding, in: 0...30, step: 2)
+                }
+                
+                VStack(alignment: .leading) {
+                    Text("Space Below Hint Button: \(Int(appStyle.hintButtonBottomPadding))")
+                    Slider(value: $appStyle.hintButtonBottomPadding, in: 0...30, step: 2)
+                }
+            }
+            
+            Section(header: Text("Text Layout")) {
+                VStack(alignment: .leading) {
+                    Text("Text Line Spacing: \(Int(appStyle.textLineSpacing))")
+                    Slider(value: $appStyle.textLineSpacing, in: 0...12, step: 1)
+                }
+                
+                VStack(alignment: .leading) {
+                    Text("Text Letter Spacing: \(appStyle.textLetterSpacing, specifier: "%.1f")")
+                    Slider(value: $appStyle.textLetterSpacing, in: 0...5, step: 0.5)
+                }
+            }
+            
+            Section(header: Text("Layout Preview")) {
+                Text("Text alignment is always centered for better readability.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                
+                Text("This is a multi-line\ntext display example\nfor the game")
+                    .lineSpacing(appStyle.textLineSpacing)
+                    .tracking(appStyle.textLetterSpacing)
+                    .multilineTextAlignment(.center)
+                    .padding()
+                    .background(Color.gray.opacity(0.1))
+                    .cornerRadius(8)
             }
         }
     }
@@ -583,6 +781,11 @@ struct EnhancedStyleEditorView: View {
                 }
                 
                 VStack(alignment: .leading) {
+                    Text("Letter Cell Font Size: \(Int(appStyle.letterCellFontSize))")
+                    Slider(value: $appStyle.letterCellFontSize, in: 12...30, step: 1)
+                }
+                
+                VStack(alignment: .leading) {
                     Text("Caption Font Size: \(Int(appStyle.captionFontSize))")
                     Slider(value: $appStyle.captionFontSize, in: 8...16, step: 1)
                 }
@@ -597,38 +800,16 @@ struct EnhancedStyleEditorView: View {
                     .font(.system(size: appStyle.bodyFontSize, design: appStyle.fontFamily == "System" ? .default : .monospaced))
                     .padding(.bottom, 4)
                 
+                Text("Cell Text")
+                    .font(.system(size: appStyle.letterCellFontSize, design: appStyle.fontFamily == "System" ? .default : .monospaced))
+                    .padding(.bottom, 4)
+                
                 Text("Caption/Helper")
                     .font(.system(size: appStyle.captionFontSize, design: appStyle.fontFamily == "System" ? .default : .monospaced))
             }
-        }
-    }
-    
-    // MARK: - Layout Tab
-    var layoutTab: some View {
-        Form {
-            Section(header: Text("Text Spacing")) {
-                VStack(alignment: .leading) {
-                    Text("Text Line Spacing: \(Int(appStyle.textLineSpacing))")
-                    Slider(value: $appStyle.textLineSpacing, in: 0...12, step: 1)
-                }
-                
-                VStack(alignment: .leading) {
-                    Text("Text Letter Spacing: \(appStyle.textLetterSpacing, specifier: "%.1f")")
-                    Slider(value: $appStyle.textLetterSpacing, in: 0...5, step: 0.5)
-                }
-            }
             
-            Section(header: Text("Text Preview")) {
-                Text("This is a multi-line\ntext display example\nfor the game")
-                    .lineSpacing(appStyle.textLineSpacing)
-                    .tracking(appStyle.textLetterSpacing)
-                    .padding()
-                    .background(Color.gray.opacity(0.1))
-                    .cornerRadius(8)
-            }
-            
-            Section(header: Text("Tips"), footer: Text("Proper spacing improves readability for encrypted text and solution display.")) {
-                Text("Try to maintain consistent spacing between the encrypted text and solution display. Monospaced fonts typically work better for this type of game.")
+            Section(header: Text("Font Note"), footer: Text("Only System and Courier fonts are fully supported in the current version.")) {
+                Text("Monospaced fonts generally work better for cryptography games as they help maintain alignment between letters.")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
@@ -693,46 +874,108 @@ struct EnhancedStyleEditorView: View {
                         .foregroundColor(appStyle.darkText)
                         .padding(.bottom)
                     
-                    // Sample letter cells
-                    HStack(spacing: appStyle.letterSpacing) {
-                        // Encrypted letter
-                        Text("A")
-                            .font(.system(size: appStyle.bodyFontSize, design: appStyle.fontFamily == "System" ? .default : .monospaced))
-                            .frame(width: appStyle.letterCellSize, height: appStyle.letterCellSize)
-                            .background(appStyle.darkText)
-                            .foregroundColor(appStyle.darkBackground)
-                            .cornerRadius(6)
-                        
-                        // Normal letter
-                        Text("B")
-                            .font(.system(size: appStyle.bodyFontSize, design: appStyle.fontFamily == "System" ? .default : .monospaced))
-                            .frame(width: appStyle.letterCellSize, height: appStyle.letterCellSize)
-                            .background(Color.gray.opacity(0.2))
-                            .foregroundColor(appStyle.darkText)
-                            .cornerRadius(6)
-                        
-                        // Guess letter
-                        Text("C")
-                            .font(.system(size: appStyle.bodyFontSize, design: appStyle.fontFamily == "System" ? .default : .monospaced))
-                            .frame(width: appStyle.guessLetterCellSize, height: appStyle.guessLetterCellSize)
-                            .background(appStyle.darkText.opacity(0.2))
-                            .foregroundColor(appStyle.darkText)
-                            .cornerRadius(6)
-                    }
-                    .padding(appStyle.contentPadding)
-                    
-                    // Sample text with line and letter spacing
-                    Text("T█E Q█ICK BR█WN F█X")
+                    // Sample encrypted text
+                    Text("ZKHQH QRU BFWLRQ.")
                         .font(.system(size: appStyle.bodyFontSize, design: appStyle.fontFamily == "System" ? .default : .monospaced))
                         .tracking(appStyle.textLetterSpacing)
-                        .lineSpacing(appStyle.textLineSpacing)
-                        .foregroundColor(appStyle.darkText)
-                    
-                    // Sample caption text
-                    Text("Tap a letter to select it")
-                        .font(.system(size: appStyle.captionFontSize, design: appStyle.fontFamily == "System" ? .default : .monospaced))
+                        .multilineTextAlignment(.center)
                         .foregroundColor(.gray)
+                        .padding(.horizontal, appStyle.contentPadding)
+                    
+                    // Space between encrypted and display
+                    Spacer()
+                        .frame(height: appStyle.textDisplaySpacing)
+                    
+                    // Sample solution text
+                    Text("W█E█E ███ ███I██.")
+                        .font(.system(size: appStyle.bodyFontSize, design: appStyle.fontFamily == "System" ? .default : .monospaced))
+                        .tracking(appStyle.textLetterSpacing)
+                        .multilineTextAlignment(.center)
+                        .foregroundColor(appStyle.darkText)
+                        .padding(.horizontal, appStyle.contentPadding)
+                    
+                    // Space before grids
+                    Spacer()
+                        .frame(height: appStyle.textToGridSpacing)
+                    
+                    // Layout with grids and hint button
+                    HStack(spacing: 0) {
+                        // Encrypted grid
+                        HStack(spacing: appStyle.letterSpacing) {
+                            // Sample encrypted letters
+                            LetterCellPreview(
+                                letter: "Z",
+                                state: .normal,
+                                isDarkMode: true,
+                                style: appStyle
+                            )
+                            
+                            LetterCellPreview(
+                                letter: "K",
+                                state: .selected,
+                                isDarkMode: true,
+                                style: appStyle
+                            )
+                            
+                            LetterCellPreview(
+                                letter: "F",
+                                state: .guessed,
+                                isDarkMode: true,
+                                style: appStyle
+                            )
+                        }
+                        .padding(.leading, appStyle.gridMargin)
+                        
+                        Spacer()
+                        
+                        // Hint button placeholder
+                        VStack {
+                            Spacer()
+                                .frame(height: appStyle.hintButtonTopPadding)
+                            
+                            Text("HINT")
+                                .font(.system(size: appStyle.captionFontSize))
+                                .foregroundColor(appStyle.darkText)
+                                .frame(width: 60, height: 40)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .stroke(appStyle.darkText, lineWidth: 1)
+                                )
+                            
+                            Spacer()
+                                .frame(height: appStyle.hintButtonBottomPadding)
+                        }
+                        
+                        Spacer()
+                        
+                        // Guess grid
+                        HStack(spacing: appStyle.letterSpacing) {
+                            // Sample guess letters
+                            GuessLetterCellPreview(
+                                letter: "W",
+                                isUsed: false,
+                                isDarkMode: true,
+                                style: appStyle
+                            )
+                            
+                            GuessLetterCellPreview(
+                                letter: "H",
+                                isUsed: true,
+                                isDarkMode: true,
+                                style: appStyle
+                            )
+                            
+                            GuessLetterCellPreview(
+                                letter: "E",
+                                isUsed: false,
+                                isDarkMode: true,
+                                style: appStyle
+                            )
+                        }
+                        .padding(.trailing, appStyle.gridMargin)
+                    }
                 }
+                .padding(.vertical)
             }
         }
         .cornerRadius(12)
@@ -760,9 +1003,95 @@ struct EnhancedStyleEditorView: View {
             appStyle.darkBackground = tempColor
         case .darkText:
             appStyle.darkText = tempColor
+        case .letterCellNormal:
+            appStyle.letterCellNormalColor = tempColor
+        case .letterCellSelected:
+            appStyle.letterCellSelectedColor = tempColor
+        case .letterCellGuessed:
+            appStyle.letterCellGuessedColor = tempColor
         case nil:
             break
         }
+    }
+}
+
+// Letter Cell states for preview
+enum LetterCellState {
+    case normal, selected, guessed
+}
+
+// Letter Cell Preview
+struct LetterCellPreview: View {
+    let letter: String
+    let state: LetterCellState
+    let isDarkMode: Bool
+    let style: AppStyle
+    
+    var body: some View {
+        Text(letter)
+            .font(.system(size: style.letterCellFontSize, design: style.fontFamily == "System" ? .default : .monospaced))
+            .fontWeight(.bold)
+            .frame(width: style.letterCellSize, height: style.letterCellSize)
+            .padding(style.letterCellPadding)
+            .background(backgroundForState())
+            .foregroundColor(foregroundForState())
+            .cornerRadius(4)
+            .overlay(
+                RoundedRectangle(cornerRadius: 4)
+                    .stroke(state == .selected ? (isDarkMode ? style.darkText : style.primaryColor) : Color.clear, lineWidth: 2)
+            )
+    }
+    
+    // Background color based on state
+    private func backgroundForState() -> Color {
+        switch state {
+        case .normal:
+            return isDarkMode ? style.letterCellNormalColor : style.letterCellNormalColor.opacity(0.8)
+        case .selected:
+            return isDarkMode ? style.letterCellSelectedColor : style.primaryColor
+        case .guessed:
+            return isDarkMode ? style.letterCellGuessedColor : Color(white: 0.85)
+        }
+    }
+    
+    // Foreground (text) color based on state
+    private func foregroundForState() -> Color {
+        switch state {
+        case .normal:
+            return .white
+        case .selected:
+            return isDarkMode ? style.darkBackground : .white
+        case .guessed:
+            return .gray
+        }
+    }
+}
+
+// Guess Letter Cell Preview
+struct GuessLetterCellPreview: View {
+    let letter: String
+    let isUsed: Bool
+    let isDarkMode: Bool
+    let style: AppStyle
+    
+    var body: some View {
+        Text(letter)
+            .font(.system(size: style.letterCellFontSize, design: style.fontFamily == "System" ? .default : .monospaced))
+            .fontWeight(.bold)
+            .frame(width: style.guessLetterCellSize, height: style.guessLetterCellSize)
+            .padding(style.letterCellPadding)
+            .background(
+                isUsed ? (isDarkMode ? Color(white: 0.2) : Color(white: 0.85)) :
+                        (isDarkMode ? Color(white: 0.15) : Color.white)
+            )
+            .foregroundColor(
+                isUsed ? .gray : (isDarkMode ? .white : .black)
+            )
+            .cornerRadius(4)
+            .overlay(
+                RoundedRectangle(cornerRadius: 4)
+                    .stroke(isDarkMode ? Color.gray.opacity(0.3) : Color.gray.opacity(0.3), lineWidth: 1)
+            )
     }
 }
 

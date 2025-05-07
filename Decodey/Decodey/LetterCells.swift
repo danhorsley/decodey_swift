@@ -1,7 +1,6 @@
 import SwiftUI
 
-// Cell for encrypted letters
-// Cell for encrypted letters - updated to use style properties
+// Cell for encrypted letters - updated to use all style properties
 struct EncryptedLetterCell: View {
     let letter: Character
     let isSelected: Bool
@@ -9,21 +8,18 @@ struct EncryptedLetterCell: View {
     let frequency: Int
     let action: () -> Void
     let isDarkMode: Bool
-    let primaryColor: Color
-    let darkText: Color
-    let cellSize: CGFloat
-    let fontSize: CGFloat
-    let fontFamily: String
+    let appStyle: AppStyle
     
     var body: some View {
         Button(action: action) {
             ZStack(alignment: .bottomTrailing) {
                 // Background and content
                 Text(String(letter))
-                    .font(.system(size: fontSize,
-                           design: fontFamily == "System" ? .default : .monospaced))
+                    .font(.system(size: appStyle.letterCellFontSize,
+                           design: appStyle.fontFamily == "System" ? .default : .monospaced))
                     .fontWeight(.bold)
-                    .frame(width: cellSize, height: cellSize)
+                    .frame(width: appStyle.letterCellSize, height: appStyle.letterCellSize)
+                    .padding(appStyle.letterCellPadding)
                     .background(
                         backgroundForState()
                     )
@@ -33,13 +29,13 @@ struct EncryptedLetterCell: View {
                     .cornerRadius(4)
                     .overlay(
                         RoundedRectangle(cornerRadius: 4)
-                            .stroke(isSelected ? (isDarkMode ? darkText : primaryColor) : Color.clear, lineWidth: 2)
+                            .stroke(isSelected ? (isDarkMode ? appStyle.darkText : appStyle.primaryColor) : Color.clear, lineWidth: 2)
                     )
                 
                 // Frequency counter in bottom right
                 if frequency > 0 && !isGuessed {
                     Text("\(frequency)")
-                        .font(.system(size: fontSize * 0.6))
+                        .font(.system(size: appStyle.letterCellFontSize * 0.6))
                         .foregroundColor(foregroundForState().opacity(0.7))
                         .offset(x: -4, y: -2)
                 }
@@ -49,14 +45,14 @@ struct EncryptedLetterCell: View {
         .disabled(isGuessed)
     }
     
-    // Background color based on state
+    // Background color based on state using style colors
     private func backgroundForState() -> Color {
         if isGuessed {
-            return isDarkMode ? Color(white: 0.2) : Color(white: 0.85)
+            return isDarkMode ? appStyle.letterCellGuessedColor : Color(white: 0.85)
         } else if isSelected {
-            return isDarkMode ? darkText : primaryColor
+            return isDarkMode ? appStyle.letterCellSelectedColor : appStyle.primaryColor
         } else {
-            return isDarkMode ? Color(red: 0/255, green: 45/255, blue: 100/255) : Color(red: 30/255, green: 90/255, blue: 200/255)
+            return isDarkMode ? appStyle.letterCellNormalColor : Color(red: 30/255, green: 90/255, blue: 200/255)
         }
     }
     
@@ -72,25 +68,22 @@ struct EncryptedLetterCell: View {
     }
 }
 
-// Cell for guessing letters - updated to use style properties
+// Cell for guessing letters - updated to use all style properties
 struct GuessLetterCell: View {
     let letter: Character
     let isUsed: Bool
     let action: () -> Void
     let isDarkMode: Bool
-    let primaryColor: Color
-    let darkText: Color
-    let cellSize: CGFloat
-    let fontSize: CGFloat
-    let fontFamily: String
+    let appStyle: AppStyle
     
     var body: some View {
         Button(action: action) {
             Text(String(letter))
-                .font(.system(size: fontSize,
-                       design: fontFamily == "System" ? .default : .monospaced))
+                .font(.system(size: appStyle.letterCellFontSize,
+                       design: appStyle.fontFamily == "System" ? .default : .monospaced))
                 .fontWeight(.bold)
-                .frame(width: cellSize, height: cellSize)
+                .frame(width: appStyle.guessLetterCellSize, height: appStyle.guessLetterCellSize)
+                .padding(appStyle.letterCellPadding)
                 .background(
                     isUsed ? (isDarkMode ? Color(white: 0.2) : Color(white: 0.85)) :
                             (isDarkMode ? Color(white: 0.15) : Color.white)
@@ -109,28 +102,6 @@ struct GuessLetterCell: View {
     }
 }
 
-struct GameGridsView_Previews: PreviewProvider {
-    static var previews: some View {
-        GameGridsView(
-            game: .constant(Game()),
-            isDarkMode: .constant(true),
-            primaryColor: Color(red: 0/255, green: 66/255, blue: 170/255),
-            darkText: Color(red: 76/255, green: 201/255, blue: 240/255),
-            letterCellSize: 36,
-            guessLetterCellSize: 32,
-            letterSpacing: 4,
-            fontFamily: "System",
-            fontSize: 16,
-            showTextHelpers: true,
-            onWin: {},
-            onLose: {}
-        )
-        .frame(height: 400)
-        .background(Color(red: 34/255, green: 34/255, blue: 34/255))
-        .previewLayout(.sizeThatFits)
-    }
-}
-// Preview provider for SwiftUI canvas
 struct LetterCells_Previews: PreviewProvider {
     static var previews: some View {
         VStack(spacing: 20) {
@@ -138,6 +109,8 @@ struct LetterCells_Previews: PreviewProvider {
             Text("Encrypted Letters")
                 .font(.headline)
                 .foregroundColor(.white)
+            
+            let appStyle = AppStyle()
             
             HStack(spacing: 8) {
                 // Normal state
@@ -148,11 +121,7 @@ struct LetterCells_Previews: PreviewProvider {
                     frequency: 3,
                     action: {},
                     isDarkMode: true,
-                    primaryColor: Color(red: 0/255, green: 66/255, blue: 170/255),
-                    darkText: Color(red: 76/255, green: 201/255, blue: 240/255),
-                    cellSize: 36,
-                    fontSize: 16,
-                    fontFamily: "System"
+                    appStyle: appStyle
                 )
                 
                 // Selected state
@@ -163,11 +132,7 @@ struct LetterCells_Previews: PreviewProvider {
                     frequency: 2,
                     action: {},
                     isDarkMode: true,
-                    primaryColor: Color(red: 0/255, green: 66/255, blue: 170/255),
-                    darkText: Color(red: 76/255, green: 201/255, blue: 240/255),
-                    cellSize: 36,
-                    fontSize: 16,
-                    fontFamily: "System"
+                    appStyle: appStyle
                 )
                 
                 // Guessed state
@@ -178,11 +143,7 @@ struct LetterCells_Previews: PreviewProvider {
                     frequency: 1,
                     action: {},
                     isDarkMode: true,
-                    primaryColor: Color(red: 0/255, green: 66/255, blue: 170/255),
-                    darkText: Color(red: 76/255, green: 201/255, blue: 240/255),
-                    cellSize: 36,
-                    fontSize: 16,
-                    fontFamily: "System"
+                    appStyle: appStyle
                 )
             }
             
@@ -199,11 +160,7 @@ struct LetterCells_Previews: PreviewProvider {
                     isUsed: false,
                     action: {},
                     isDarkMode: true,
-                    primaryColor: Color(red: 0/255, green: 66/255, blue: 170/255),
-                    darkText: Color(red: 76/255, green: 201/255, blue: 240/255),
-                    cellSize: 32,
-                    fontSize: 16,
-                    fontFamily: "System"
+                    appStyle: appStyle
                 )
                 
                 // Used state
@@ -212,77 +169,7 @@ struct LetterCells_Previews: PreviewProvider {
                     isUsed: true,
                     action: {},
                     isDarkMode: true,
-                    primaryColor: Color(red: 0/255, green: 66/255, blue: 170/255),
-                    darkText: Color(red: 76/255, green: 201/255, blue: 240/255),
-                    cellSize: 32,
-                    fontSize: 16,
-                    fontFamily: "System"
-                )
-                
-                // Available state with monospace font
-                GuessLetterCell(
-                    letter: "Z",
-                    isUsed: false,
-                    action: {},
-                    isDarkMode: true,
-                    primaryColor: Color(red: 0/255, green: 66/255, blue: 170/255),
-                    darkText: Color(red: 76/255, green: 201/255, blue: 240/255),
-                    cellSize: 32,
-                    fontSize: 16,
-                    fontFamily: "Menlo"
-                )
-            }
-            
-            // Different size previews
-            Text("Size Variations")
-                .font(.headline)
-                .foregroundColor(.white)
-                .padding(.top, 20)
-            
-            HStack(spacing: 12) {
-                // Small cells
-                EncryptedLetterCell(
-                    letter: "S",
-                    isSelected: false,
-                    isGuessed: false,
-                    frequency: 2,
-                    action: {},
-                    isDarkMode: true,
-                    primaryColor: Color(red: 0/255, green: 66/255, blue: 170/255),
-                    darkText: Color(red: 76/255, green: 201/255, blue: 240/255),
-                    cellSize: 28,
-                    fontSize: 14,
-                    fontFamily: "System"
-                )
-                
-                // Medium cells (default)
-                EncryptedLetterCell(
-                    letter: "M",
-                    isSelected: false,
-                    isGuessed: false,
-                    frequency: 3,
-                    action: {},
-                    isDarkMode: true,
-                    primaryColor: Color(red: 0/255, green: 66/255, blue: 170/255),
-                    darkText: Color(red: 76/255, green: 201/255, blue: 240/255),
-                    cellSize: 36,
-                    fontSize: 16,
-                    fontFamily: "System"
-                )
-                
-                // Large cells
-                EncryptedLetterCell(
-                    letter: "L",
-                    isSelected: false,
-                    isGuessed: false,
-                    frequency: 1,
-                    action: {},
-                    isDarkMode: true,
-                    primaryColor: Color(red: 0/255, green: 66/255, blue: 170/255),
-                    darkText: Color(red: 76/255, green: 201/255, blue: 240/255),
-                    cellSize: 48,
-                    fontSize: 20,
-                    fontFamily: "System"
+                    appStyle: appStyle
                 )
             }
         }

@@ -4,14 +4,8 @@ struct GameGridsView: View {
     @Binding var game: Game
     @Binding var isDarkMode: Bool
     
-    // Style properties passed from ContentView
-    var primaryColor: Color
-    var darkText: Color
-    var letterCellSize: CGFloat
-    var guessLetterCellSize: CGFloat
-    var letterSpacing: CGFloat
-    var fontFamily: String
-    var fontSize: CGFloat
+    // Style reference
+    @EnvironmentObject var appStyle: AppStyle
     
     let showTextHelpers: Bool
     let onWin: () -> Void
@@ -28,24 +22,42 @@ struct GameGridsView: View {
                 HStack(alignment: .top, spacing: 0) {
                     encryptedGrid
                         .frame(maxWidth: .infinity)
+                        .padding(.leading, appStyle.gridMargin)
                     
                     // Hint button in the center
                     VStack {
                         Spacer()
+                            .frame(height: appStyle.hintButtonTopPadding)
+                        
                         hintButton
+                        
                         Spacer()
+                            .frame(height: appStyle.hintButtonBottomPadding)
                     }
                     .frame(width: 130)
                     
                     guessGrid
                         .frame(maxWidth: .infinity)
+                        .padding(.trailing, appStyle.gridMargin)
                 }
             } else {
                 // Portrait layout
-                VStack(spacing: letterSpacing * 5) {
+                VStack(spacing: appStyle.letterSpacing * 5) {
                     encryptedGrid
-                    hintButton
+                        .frame(maxWidth: .infinity, alignment: .center)
+                    
+                    VStack {
+                        Spacer()
+                            .frame(height: appStyle.hintButtonTopPadding)
+                        
+                        hintButton
+                        
+                        Spacer()
+                            .frame(height: appStyle.hintButtonBottomPadding)
+                    }
+                    
                     guessGrid
+                        .frame(maxWidth: .infinity, alignment: .center)
                 }
             }
         }
@@ -53,18 +65,18 @@ struct GameGridsView: View {
     
     // Encrypted letters grid (left side)
     private var encryptedGrid: some View {
-        VStack(alignment: .center, spacing: letterSpacing * 2) {
+        VStack(alignment: .center, spacing: appStyle.letterSpacing * 2) {
             if showTextHelpers {
                 Text("Select a letter to decode:")
-                    .font(.system(size: fontSize * 0.75,
-                           design: fontFamily == "System" ? .default : .monospaced))
+                    .font(.system(size: appStyle.captionFontSize,
+                           design: appStyle.fontFamily == "System" ? .default : .monospaced))
                     .foregroundColor(isDarkMode ? .white : .black)
             }
             
             // Create a fixed 5-column grid
-            let columns = Array(repeating: GridItem(.flexible(), spacing: letterSpacing), count: 5)
+            let columns = Array(repeating: GridItem(.flexible(), spacing: appStyle.letterSpacing), count: 5)
             
-            LazyVGrid(columns: columns, spacing: letterSpacing) {
+            LazyVGrid(columns: columns, spacing: appStyle.letterSpacing) {
                 ForEach(game.uniqueEncryptedLetters(), id: \.self) { letter in
                     EncryptedLetterCell(
                         letter: letter,
@@ -77,11 +89,7 @@ struct GameGridsView: View {
                             }
                         },
                         isDarkMode: isDarkMode,
-                        primaryColor: primaryColor,
-                        darkText: darkText,
-                        cellSize: letterCellSize,
-                        fontSize: fontSize,
-                        fontFamily: fontFamily
+                        appStyle: appStyle
                     )
                 }
                 
@@ -91,31 +99,30 @@ struct GameGridsView: View {
                 
                 ForEach(0..<placeholdersNeeded, id: \.self) { _ in
                     Color.clear
-                        .frame(width: letterCellSize, height: letterCellSize)
+                        .frame(width: appStyle.letterCellSize, height: appStyle.letterCellSize)
                 }
             }
-            .frame(maxWidth: 220 + (letterCellSize - 36)) // Adjust max width based on cell size
+            .frame(maxWidth: 220 + (appStyle.letterCellSize - 36)) // Adjust max width based on cell size
         }
-        .padding(.horizontal, 8)
     }
     
     // Guess letters grid (right side)
     private var guessGrid: some View {
-        VStack(alignment: .center, spacing: letterSpacing * 2) {
+        VStack(alignment: .center, spacing: appStyle.letterSpacing * 2) {
             if showTextHelpers {
                 Text("Guess with:")
-                    .font(.system(size: fontSize * 0.75,
-                           design: fontFamily == "System" ? .default : .monospaced))
+                    .font(.system(size: appStyle.captionFontSize,
+                           design: appStyle.fontFamily == "System" ? .default : .monospaced))
                     .foregroundColor(isDarkMode ? .white : .black)
             }
             
             // Create a fixed 5-column grid
-            let columns = Array(repeating: GridItem(.flexible(), spacing: letterSpacing), count: 5)
+            let columns = Array(repeating: GridItem(.flexible(), spacing: appStyle.letterSpacing), count: 5)
             
             // Get alphabet letters
             let uniqueLetters = Array(Set(game.solution.filter { $0.isLetter })).sorted()
             
-            LazyVGrid(columns: columns, spacing: letterSpacing) {
+            LazyVGrid(columns: columns, spacing: appStyle.letterSpacing) {
                 ForEach(uniqueLetters, id: \.self) { letter in
                     GuessLetterCell(
                         letter: letter,
@@ -135,11 +142,7 @@ struct GameGridsView: View {
                             }
                         },
                         isDarkMode: isDarkMode,
-                        primaryColor: primaryColor,
-                        darkText: darkText,
-                        cellSize: guessLetterCellSize,
-                        fontSize: fontSize,
-                        fontFamily: fontFamily
+                        appStyle: appStyle
                     )
                 }
                 
@@ -149,12 +152,11 @@ struct GameGridsView: View {
                 
                 ForEach(0..<placeholdersNeeded, id: \.self) { _ in
                     Color.clear
-                        .frame(width: guessLetterCellSize, height: guessLetterCellSize)
+                        .frame(width: appStyle.guessLetterCellSize, height: appStyle.guessLetterCellSize)
                 }
             }
-            .frame(maxWidth: 220 + (guessLetterCellSize - 32)) // Adjust max width based on cell size
+            .frame(maxWidth: 220 + (appStyle.guessLetterCellSize - 32)) // Adjust max width based on cell size
         }
-        .padding(.horizontal, 8)
     }
     
     // Hint button
@@ -187,21 +189,21 @@ struct GameGridsView: View {
                 if isHintInProgress {
                     ProgressView()
                         .scaleEffect(1.2)
-                        .progressViewStyle(CircularProgressViewStyle(tint: isDarkMode ? darkText : primaryColor))
+                        .progressViewStyle(CircularProgressViewStyle(tint: isDarkMode ? appStyle.darkText : appStyle.primaryColor))
                         .padding(8)
                 } else {
                     // Show remaining hints
                     Text("\(game.maxMistakes - game.mistakes)")
-                        .font(.system(.title, design: fontFamily == "System" ? .default : .monospaced))
+                        .font(.system(.title, design: appStyle.fontFamily == "System" ? .default : .monospaced))
                         .fontWeight(.bold)
-                        .foregroundColor(isDarkMode ? darkText : primaryColor)
+                        .foregroundColor(isDarkMode ? appStyle.darkText : appStyle.primaryColor)
                 }
                 
                 // Only show hint tokens text if text helpers are enabled
                 if showTextHelpers {
                     Text("HINT TOKENS")
-                        .font(.system(size: fontSize * 0.6,
-                               design: fontFamily == "System" ? .default : .monospaced))
+                        .font(.system(size: appStyle.captionFontSize,
+                               design: appStyle.fontFamily == "System" ? .default : .monospaced))
                         .foregroundColor(isDarkMode ? .white : .black)
                         .opacity(0.7)
                 }
@@ -227,9 +229,25 @@ struct GameGridsView: View {
         } else if remainingMistakes <= game.maxMistakes / 2 {
             return .orange
         } else {
-            return isDarkMode ? darkText : primaryColor
+            return isDarkMode ? appStyle.darkText : appStyle.primaryColor
         }
     }
 }
 
-
+struct GameGridsView_Previews: PreviewProvider {
+    static var previews: some View {
+        let appStyle = AppStyle()
+        
+        GameGridsView(
+            game: .constant(Game()),
+            isDarkMode: .constant(true),
+            showTextHelpers: true,
+            onWin: {},
+            onLose: {}
+        )
+        .environmentObject(appStyle)
+        .frame(height: 400)
+        .background(Color(red: 34/255, green: 34/255, blue: 34/255))
+        .previewLayout(.sizeThatFits)
+    }
+}

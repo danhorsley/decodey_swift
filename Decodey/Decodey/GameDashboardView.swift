@@ -6,18 +6,14 @@ struct GameDashboardView: View {
     @Binding var showLoseMessage: Bool
     @Binding var isDarkMode: Bool
     
-    // Theme colors
-    let primaryColor: Color
-    let darkText: Color
+    // Style references
+    @EnvironmentObject var appStyle: AppStyle
     
     // Text helpers setting
     let showTextHelpers: Bool
     
     // Hint animation
     @State private var isHintInProgress = false
-    
-    // Access the app style
-    @EnvironmentObject var appStyle: AppStyle
     
     var body: some View {
         GeometryReader { geometry in
@@ -30,7 +26,7 @@ struct GameDashboardView: View {
                         .padding(.bottom, appStyle.letterSpacing * 2)
                     
                     hintButton
-                        .padding(.bottom, appStyle.letterSpacing * 2)
+                        .padding(.vertical, appStyle.hintButtonTopPadding)
                     
                     guessLetterGrid
                 } else {
@@ -38,12 +34,16 @@ struct GameDashboardView: View {
                     HStack(alignment: .center, spacing: 0) {
                         encryptedLetterGrid
                             .frame(maxWidth: .infinity)
+                            .padding(.leading, appStyle.gridMargin)
                         
                         hintButton
                             .padding(.horizontal, appStyle.contentPadding)
+                            .padding(.top, appStyle.hintButtonTopPadding)
+                            .padding(.bottom, appStyle.hintButtonBottomPadding)
                         
                         guessLetterGrid
                             .frame(maxWidth: .infinity)
+                            .padding(.trailing, appStyle.gridMargin)
                     }
                 }
             }
@@ -77,11 +77,7 @@ struct GameDashboardView: View {
                             }
                         },
                         isDarkMode: isDarkMode,
-                        primaryColor: primaryColor,
-                        darkText: darkText,
-                        cellSize: appStyle.letterCellSize,
-                        fontSize: appStyle.bodyFontSize,
-                        fontFamily: appStyle.fontFamily
+                        appStyle: appStyle
                     )
                 }
             }
@@ -125,11 +121,7 @@ struct GameDashboardView: View {
                             }
                         },
                         isDarkMode: isDarkMode,
-                        primaryColor: primaryColor,
-                        darkText: darkText,
-                        cellSize: appStyle.guessLetterCellSize,
-                        fontSize: appStyle.bodyFontSize,
-                        fontFamily: appStyle.fontFamily
+                        appStyle: appStyle
                     )
                 }
             }
@@ -156,14 +148,14 @@ struct GameDashboardView: View {
                 if isHintInProgress {
                     ProgressView()
                         .scaleEffect(1.2)
-                        .progressViewStyle(CircularProgressViewStyle(tint: isDarkMode ? darkText : primaryColor))
+                        .progressViewStyle(CircularProgressViewStyle(tint: isDarkMode ? appStyle.darkText : appStyle.primaryColor))
                         .padding(8)
                 } else {
                     // Show remaining hints
                     Text("\(game.maxMistakes - game.mistakes)")
                         .font(.system(.title, design: appStyle.fontFamily == "System" ? .default : .monospaced))
                         .fontWeight(.bold)
-                        .foregroundColor(isDarkMode ? darkText : primaryColor)
+                        .foregroundColor(isDarkMode ? appStyle.darkText : appStyle.primaryColor)
                 }
                 
                 // Only show hint tokens text if text helpers are enabled
@@ -195,7 +187,7 @@ struct GameDashboardView: View {
         } else if remainingMistakes <= game.maxMistakes / 2 {
             return .orange
         } else {
-            return isDarkMode ? darkText : primaryColor
+            return isDarkMode ? appStyle.darkText : appStyle.primaryColor
         }
     }
 }
@@ -210,8 +202,6 @@ struct GameDashboardView_Previews: PreviewProvider {
             showWinMessage: .constant(false),
             showLoseMessage: .constant(false),
             isDarkMode: .constant(true),
-            primaryColor: Color(red: 0/255, green: 66/255, blue: 170/255),
-            darkText: Color(red: 76/255, green: 201/255, blue: 240/255),
             showTextHelpers: true
         )
         .environmentObject(appStyle)
